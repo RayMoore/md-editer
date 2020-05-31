@@ -11,7 +11,7 @@ function resolve(dir) {
 module.exports = {
   context: path.resolve(__dirname, "../"),
   entry: {
-    app: "./src/main.js",
+    app: "./src/main.js"
   },
   output: {
     path: config.build.assetsRoot,
@@ -19,21 +19,21 @@ module.exports = {
     publicPath:
       process.env.NODE_ENV === "production"
         ? config.build.assetsPublicPath
-        : config.dev.assetsPublicPath,
+        : config.dev.assetsPublicPath
   },
   resolve: {
     extensions: [".js", ".vue", ".json"],
     alias: {
       vue$: "vue/dist/vue.esm.js",
-      "@": resolve("src"),
-    },
+      "@": resolve("src")
+    }
   },
   module: {
     rules: [
       {
         test: /\.vue$/,
         loader: "vue-loader",
-        options: vueLoaderConfig,
+        options: vueLoaderConfig
       },
       {
         test: /\.js$/,
@@ -41,16 +41,16 @@ module.exports = {
         include: [
           resolve("src"),
           resolve("test"),
-          resolve("node_modules/webpack-dev-server/client"),
-        ],
+          resolve("node_modules/webpack-dev-server/client")
+        ]
       },
       {
         test: /\.svg$/,
         loader: "svg-sprite-loader",
         include: [resolve("src/assets/icon")],
         options: {
-          symbolId: "icon-[name]",
-        },
+          symbolId: "icon-[name]"
+        }
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
@@ -58,26 +58,26 @@ module.exports = {
         exclude: [resolve("src/assets/icon")],
         options: {
           limit: 10000,
-          name: utils.assetsPath("img/[name].[hash:7].[ext]"),
-        },
+          name: utils.assetsPath("img/[name].[hash:7].[ext]")
+        }
       },
       {
         test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
         loader: "url-loader",
         options: {
           limit: 10000,
-          name: utils.assetsPath("media/[name].[hash:7].[ext]"),
-        },
+          name: utils.assetsPath("media/[name].[hash:7].[ext]")
+        }
       },
       {
-        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+        test: /\.(woff2?|eot|ttf|otf|ttc)(\?.*)?$/,
         loader: "url-loader",
         options: {
           limit: 10000,
-          name: utils.assetsPath("fonts/[name].[hash:7].[ext]"),
-        },
-      },
-    ],
+          name: utils.assetsPath("fonts/[name].[hash:7].[ext]")
+        }
+      }
+    ]
   },
   node: {
     // prevent webpack from injecting useless setImmediate polyfill because Vue
@@ -89,6 +89,6 @@ module.exports = {
     fs: "empty",
     net: "empty",
     tls: "empty",
-    child_process: "empty",
-  },
+    child_process: "empty"
+  }
 };
