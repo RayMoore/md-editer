@@ -3,18 +3,25 @@
 import Vue from "vue";
 import App from "./App";
 
-// icon
 import "@/assets/icon";
 import "@/assets/editor";
+import "@/assets/loading";
 
 import store from "@/store";
 import router from "@/router";
 import i18n from "@/i18n";
+import vueResource from "vue-resource";
+
+import Alert from "@/plugins/alert";
+Vue.use(Alert);
+Vue.use(vueResource);
 
 Vue.config.productionTip = false;
 Vue.directive("title", function(el, binding) {
   document.title = binding.value;
 });
+Vue.prototype.$eventbus = new Vue();
+Vue.http.options.emulateJSON = true;
 
 /* eslint-disable no-new */
 new Vue({

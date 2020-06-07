@@ -1,10 +1,14 @@
 const state = {
-  route: "mdboard"
+  route: "md-board"
 };
 
 const getters = {};
 const actions = {};
-const mutations = {};
+const mutations = {
+  set_route(state, payload) {
+    state.route = payload;
+  }
+};
 
 export default {
   namespaced: true,

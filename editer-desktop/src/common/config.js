@@ -11,5 +11,6 @@ const SCROLL_OPS = {
   },
   maxHeight: "100%"
 };
+const EXT = ".md";
 
-export { DFS_DOMAIN, SCROLL_OPS };
+export { DFS_DOMAIN, SCROLL_OPS, EXT };

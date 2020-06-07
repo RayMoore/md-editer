@@ -1,13 +1,24 @@
 <template>
   <div class="panel-content-wrapper">
-    <vue-scroll :ops="ops">
-      <doc-item
-        v-for="(file, index) in files"
-        :key="index"
-        :title="file['title']"
-        :show-border="computedShowDocItemBorder(index)"
-      />
-    </vue-scroll>
+    <div class="searching-wrapper" v-if="searching">
+      <vloading :active="true" spinner="mini-spinner" color="black" size="25" />
+    </div>
+    <div class="searching-wrapper" v-else-if="computedSearchedFilesEmpty">
+      <span>{{ $t("NO_RESULT_FOUND") }}</span>
+    </div>
+    <div class="empty-wrapper" v-else-if="computedFilesEmtpy">
+      <span>{{ $t("EMPTY") }}</span>
+    </div>
+    <div class="scroll-view" v-else>
+      <vue-scroll :ops="ops">
+        <doc-item
+          v-for="(file, index) in computedFileList"
+          :key="index"
+          :file="file"
+          :show-border="computedShowDocItemBorder(index)"
+        />
+      </vue-scroll>
+    </div>
   </div>
 </template>
 
@@ -16,6 +27,7 @@ import vueScroll from "vuescroll";
 import { mapState } from "vuex";
 import { SCROLL_OPS } from "@/common/config";
 import docItem from "./doc-item";
+import { objToArr } from "@/common/flatten";
 export default {
   components: {
     vueScroll,
@@ -26,6 +38,16 @@ export default {
       ops: SCROLL_OPS
     };
   },
+  props: {
+    searching: {
+      type: Boolean,
+      default: false
+    },
+    searchedFiles: {
+      type: [Array, null],
+      default: null
+    }
+  },
   computed: {
     ...mapState("file", ["files"]),
     computedShowDocItemBorder() {
@@ -33,6 +55,18 @@ export default {
         const { files } = this;
         return index !== files.length - 1;
       };
+    },
+    computedFileList() {
+      const { files, searchedFiles } = this;
+      return searchedFiles || objToArr(files);
+    },
+    computedSearchedFilesEmpty() {
+      const { searchedFiles } = this;
+      return Array.isArray(searchedFiles) && searchedFiles.length === 0;
+    },
+    computedFilesEmtpy() {
+      const { files } = this;
+      return Object.keys(files).length === 0;
     }
   }
 };
@@ -45,5 +79,33 @@ export default {
   justify-content: flex-start;
   align-items: center;
   width: 100%;
+  height: 100%;
+}
+.searching-wrapper {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  span {
+    font-size: 14px;
+  }
+}
+.empty-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  span {
+    font-size: 16px;
+    color: lightgrey;
+  }
+}
+.scroll-view {
+  width: 100%;
+  height: 100%;
 }
 </style>

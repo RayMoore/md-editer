@@ -1,21 +1,68 @@
 <template>
-  <div class="doc-item-wrapper" :style="computedWrapperStyle">
+  <a
+    :style="computedWrapperStyle"
+    class="doc-item-wrapper"
+    @contextmenu.stop="rightClick"
+    @click.stop="$event.stopPropagation"
+  >
     <icon name="file" />
-    <span class="display-only">{{ title }}</span>
-    <a class="file-delete active-btn"
-      ><icon name="deletefile" class="delete-icon"
-    /></a>
-  </div>
+    <input
+      ref="input"
+      @keyup.stop="onKeyUp($event)"
+      @focus.stop="changeFileName($event)"
+      @input.stop="onInputChange($event)"
+      :style="computedInputStyle"
+      v-model="newTitle"
+      v-if="computedRenameThisFile"
+    />
+    <span v-else @click.stop="addOpenedFile" class="display-only">{{
+      file.title
+    }}</span>
+    <transition name="fade">
+      <div v-show="computedShowTitleError" class="title-error">
+        <div v-if="titleInvalid">
+          {{ $t("TITLE_INVALID") }}
+        </div>
+        <div v-else-if="!titleAvailable">
+          {{ $t("TITLE_EXISTS") }}
+        </div>
+        <div v-else>
+          {{ $t("TITLE_EMPTY") }}
+        </div>
+      </div>
+    </transition>
+  </a>
 </template>
 
 <script>
+import { mapState, mapMutations, mapActions } from "vuex";
+import {
+  checkFileName,
+  checkFileAvailabel,
+  writeFile,
+  renameFile,
+  readFile,
+  deleteFile,
+  getFilePath
+} from "@/common/utils";
+import { objToArr } from "@/common/flatten";
+import { saveFilesToStore } from "@/common/store";
+const { remote } = window.require("electron");
+const { Menu, MenuItem } = remote;
 export default {
+  data() {
+    return {
+      newTitle: this.file.title,
+      timer: null,
+      titleInvalid: false,
+      titleAvailable: true,
+      menu: null
+    };
+  },
   props: {
-    title: {
-      type: String
-    },
-    id: {
-      type: String
+    file: {
+      type: Object,
+      required: true
     },
     showBorder: {
       type: Boolean,
@@ -23,10 +70,257 @@ export default {
     }
   },
   computed: {
+    ...mapState("file", [
+      "files",
+      "path",
+      "openedFileIds",
+      "renameFileId",
+      "activeFileId"
+    ]),
     computedWrapperStyle() {
-      const { showBorder } = this;
-      if (showBorder) return "border-bottom: 1px gainsboro solid";
-      return "";
+      const { showBorder, activeFileId, file } = this;
+      const color = file.id === activeFileId ? "whitesmoke" : "white";
+      const border = showBorder ? "1px gainsboro solid" : null;
+      return `background-color: ${color}; border-bottom: ${border}`;
+    },
+    computedRenameThisFile() {
+      const { file, renameFileId } = this;
+      return file.id === renameFileId;
+    },
+    computedInputStyle() {
+      const { titleInvalid, newTitle, file, titleAvailable } = this;
+      if (file.newCreated && (!newTitle || !titleInvalid))
+        return "border-color: cornflowerblue; border-style: solid";
+      else if (titleInvalid || !titleAvailable || !newTitle)
+        return "border-color: var(--main-color-danger); border-style: solid";
+      else return "";
+    },
+    computedShowTitleError() {
+      const {
+        file,
+        renameFileId,
+        titleInvalid,
+        newTitle,
+        titleAvailable
+      } = this;
+      if (renameFileId === file.id) {
+        // current editing file title
+        if (file.newCreated && !newTitle) return false;
+        if (titleInvalid || !titleAvailable || !newTitle) {
+          return true;
+        }
+      }
+      return false;
+    }
+  },
+
+  mounted() {
+    this.$eventbus.$on("reset-component", () => {
+      if (this.computedRenameThisFile) this.set_rename_file_id("");
+    });
+    const menu = new Menu();
+    menu.append(
+      new MenuItem({ label: this.$t("OPEN"), click: this.openThisFile })
+    );
+    menu.append(
+      new MenuItem({ label: this.$t("RENAME"), click: this.renameThisFile })
+    );
+    menu.append(new MenuItem({ type: "separator" }));
+    menu.append(
+      new MenuItem({ label: this.$t("DELETE"), click: this.deleteThisFile })
+    );
+    menu.append(new MenuItem({ type: "separator" }));
+    this.menu = menu;
+    if (this.file.newCreated) {
+      this.$nextTick(() => {
+        if (this.$refs["input"]) this.$refs["input"].focus();
+      });
+    }
+  },
+  updated() {
+    const { computedRenameThisFile, file } = this;
+    if (computedRenameThisFile && file.newCreated) {
+      this.$nextTick(() => {
+        this.$refs["input"].focus();
+      });
+    }
+  },
+  methods: {
+    ...mapMutations({
+      set_active_file_id: "file/set_active_file_id",
+      set_rename_file_id: "file/set_rename_file_id"
+    }),
+    ...mapActions({
+      add_opened_file_id: "file/safe_add_opened_file_id",
+      remove_opened_file_id: "file/safe_remove_opened_file_id"
+    }),
+    addOpenedFile() {
+      const { openedFileIds, renameFileId, file, files } = this;
+      if (!openedFileIds.includes(file.id)) {
+        // this file is new added to the opened file list
+        if (!file.content) {
+          const filePath = getFilePath(file.path, file.title);
+          return readFile(filePath)
+            .then(content => {
+              const modifiedFile = { ...file, content };
+              this.$set(files, file.id, modifiedFile);
+              this.add_opened_file_id(file.id);
+              this.set_active_file_id(file.id);
+              this.set_rename_file_id("");
+              this.$eventbus.$emit("reset-component");
+            })
+            .catch(err => {
+              return this.$alert.show({
+                type: "warning",
+                message: this.$t("CANNOT_OPEN_FILE")
+              });
+            });
+        }
+        this.add_opened_file_id(file.id);
+      }
+      this.set_active_file_id(file.id);
+      this.set_rename_file_id("");
+      this.$eventbus.$emit("reset-component");
+    },
+    rightClick() {
+      const { computedRenameThisFile } = this;
+      if (!computedRenameThisFile) this.menu.popup();
+    },
+    renameThisFile() {
+      const { file } = this;
+      this.set_rename_file_id(file.id);
+    },
+    async deleteThisFile() {
+      const { file, files, openedFileIds, renameFileId } = this;
+      try {
+        const filePath = getFilePath(file.path, file.title);
+        await deleteFile(filePath);
+      } catch (err) {
+        console.log(err);
+      } finally {
+        if (openedFileIds.includes(file.id))
+          this.remove_opened_file_id(file.id);
+        if (file.id === renameFileId) this.set_rename_file_id("");
+        this.$delete(files, file.id);
+        saveFilesToStore(objToArr(this.files));
+      }
+    },
+    openThisFile() {
+      return this.addOpenedFile();
+    },
+    changeFileName(e) {
+      e.currentTarget.select();
+    },
+    onInputChange(e) {
+      clearTimeout(this.timer);
+      const val = e.target.value;
+      this.titleInvalid = checkFileName(val);
+      if (val.length > 0) {
+        this.timer = setTimeout(() => {
+          clearTimeout(this.timer);
+          this.timer = null;
+          this.titleAvailable = checkFileAvailabel(this.path, val);
+        }, 1000);
+      } else {
+        this.timer = null;
+      }
+    },
+    async onKeyUp(e) {
+      const {
+        file,
+        files,
+        newTitle,
+        titleAvailable,
+        titleInvalid,
+        path
+      } = this;
+      try {
+        if (e.keyCode === 27) {
+          // Escape
+          if (file.newCreated) this.$delete(files, file.id);
+          this.set_rename_file_id("");
+        } else if (e.keyCode === 13) {
+          // Enter
+          if (!newTitle || !titleAvailable || titleInvalid) return;
+          const trimmedNewTitle = newTitle.trim();
+          const filePath = getFilePath(path, trimmedNewTitle);
+          if (file.newCreated) {
+            // create new file
+            await writeFile(filePath, "");
+            const { newCreated, ...createdFile } = file;
+            const modifiedFile = {
+              ...createdFile,
+              path,
+              title: trimmedNewTitle,
+              createdAt: new Date().getTime()
+            };
+            this.$set(files, file.id, modifiedFile);
+            saveFilesToStore(objToArr(this.files));
+          } else {
+            // rename this file
+            const originalFilePath = getFilePath(file.path, file.title);
+            if (originalFilePath !== filePath) {
+              await renameFile(originalFilePath, filePath);
+              const modifiedFile = { ...file, path, title: trimmedNewTitle };
+              this.$set(files, file.id, modifiedFile);
+              saveFilesToStore(objToArr(this.files));
+            }
+          }
+          this.set_rename_file_id("");
+        } else {
+          // pass
+        }
+      } catch (err) {
+        console.log(err);
+        this.set_rename_file_id("");
+        if (file.newCreated) this.$delete(files, file.id);
+      }
+    }
+  },
+  watch: {
+    renameFileId(newVal, oldVal) {
+      const { file, newTitle, titleAvailable, titleInvalid, path } = this;
+      if (newVal === file.id) {
+        // rename active
+        return this.$nextTick(() => {
+          this.$refs["input"].focus();
+        });
+      }
+      if (!newTitle || !titleAvailable || titleInvalid) {
+        if (file.newCreated) this.$delete(this.files, file.id);
+        return;
+      }
+      const trimmedNewTitle = newTitle.trim();
+      const filePath = getFilePath(path, trimmedNewTitle);
+      if (file.newCreated) {
+        writeFile(filePath, "")
+          .then(() => {
+            const { newCreated, ...createdFile } = file;
+            const modifiedFile = {
+              ...createdFile,
+              path,
+              title: trimmedNewTitle,
+              createdAt: new Date().getTime()
+            };
+            this.$set(this.files, file.id, modifiedFile);
+            saveFilesToStore(objToArr(this.files));
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      } else {
+        const originalFilePath = getFilePath(file.path, file.title);
+        if (filePath === originalFilePath) return;
+        renameFile(originalFilePath, filePath)
+          .then(() => {
+            const modifiedFile = { ...file, path, title: trimmedNewTitle };
+            this.$set(this.files, file.id, modifiedFile);
+            saveFilesToStore(objToArr(this.files));
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
     }
   }
 };
@@ -34,6 +328,7 @@ export default {
 
 <style lang="scss" scoped>
 .doc-item-wrapper {
+  cursor: pointer;
   width: 100%;
   height: 40px;
   display: flex;
@@ -43,13 +338,29 @@ export default {
   position: relative;
   span {
     font-size: 14px;
-    width: 70%;
+    width: 100%;
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  input {
+    font-size: 14px;
+    height: 60%;
+    width: calc(100% - 2px);
+    margin-right: 2px;
+    border: 1px gainsboro dashed;
+    background-color: transparent;
+  }
+  input:focus {
+    outline: none;
+  }
 }
+
+.doc-item-wrapper:hover {
+  background-color: aliceblue !important;
+}
+
 .file-delete {
   height: 18px;
   width: 18px;
@@ -65,5 +376,42 @@ export default {
     width: 15px;
     height: 15px;
   }
+}
+
+.title-error {
+  position: absolute;
+  top: calc(100% + 1px);
+  width: 100%;
+  z-index: 10049 !important;
+  div {
+    width: 100%;
+    min-height: 35px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 2px;
+    flex-wrap: wrap;
+    background-color: var(--main-color-danger);
+    color: whitesmoke;
+    font-size: 14px;
+    border: 1px red solid;
+  }
+}
+
+// before enter and after leave
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+// after enter and before leave
+.fade-leave,
+.fade-enter-to {
+  opacity: 1;
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.2s;
 }
 </style>

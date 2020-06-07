@@ -1,28 +1,122 @@
 <template>
-  <div class="tab-list-wrapper">
-    <a v-for="(file, index) in files" :key="index" class="tab-pill">
-      <span class="file-title display-only">{{ file["title"] }}</span>
-      <a class="file-close"><icon name="closefile" class="close-icon"/></a>
-      <div v-show="computedIsUnsaved(file)" class="file-close">
-        <div class="editing" />
-      </div>
+  <div class="tab-list-wrapper" ref="list">
+    <file-tab
+      v-for="(file, index) in computedNonStackOpenedFiles"
+      :key="index"
+      :file="file"
+    />
+    <a
+      v-show="computedStackOpenedFiles.length > 0"
+      class="tab-pill active-btn"
+      @click.stop="openStackFilePopover"
+    >
+      <span class="file-title">{{ computedFileStackLabel }}</span>
+      <transition name="fade">
+        <div v-show="showStackFiles" class="stack-file-wrapper shadow">
+          <vue-scroll :ops="ops">
+            <file-stack-tab
+              v-for="(file, index) in computedStackOpenedFiles"
+              :key="index"
+              :file="file"
+              :show-border="index < computedStackOpenedFiles.length - 1"
+            />
+          </vue-scroll>
+        </div>
+      </transition>
     </a>
-    <a class="tab-pill" style="background-color: whitesmoke">
-      <icon name="add" />
+    <a class="tab-pill active-btn" @click.stop="createFile">
+      <icon name="add" style="color: grey" />
     </a>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapState, mapMutations } from "vuex";
+import { v1 } from "uuid";
+import fileTab from "./file-tab";
+import fileStackTab from "./file-stack-tab";
+import vueScroll from "vuescroll";
+import { SCROLL_OPS } from "@/common/config";
 
 export default {
+  components: {
+    fileTab,
+    fileStackTab,
+    vueScroll
+  },
+  data() {
+    return {
+      listWidth: 0,
+      showStackFiles: false,
+      ops: SCROLL_OPS
+    };
+  },
   computed: {
-    ...mapState("file", ["files"]),
-    computedIsUnsaved() {
-      return function(file) {
-        return true;
+    ...mapState("file", ["files", "openedFileIds"]),
+    computedTotalOpenedFiles() {
+      const { files, openedFileIds } = this;
+      return openedFileIds.map(id => {
+        return files[id];
+      });
+    },
+    computedNonStackOpenedFiles() {
+      const { computedMaxLenNonStack, computedTotalOpenedFiles } = this;
+      if (computedMaxLenNonStack > computedTotalOpenedFiles.length) {
+        const endIndex = computedMaxLenNonStack - 1;
+        return computedTotalOpenedFiles.slice(0, endIndex);
+      }
+      return computedTotalOpenedFiles;
+    },
+    computedStackOpenedFiles() {
+      const { computedMaxLenNonStack, computedTotalOpenedFiles } = this;
+      if (computedMaxLenNonStack > computedTotalOpenedFiles.length) {
+        const startIndex = computedMaxLenNonStack - 1;
+        return computedTotalOpenedFiles.slice(startIndex);
+      }
+      return [];
+    },
+    computedFileStackLabel() {
+      const { computedStackOpenedFiles } = this;
+      const number =
+        computedStackOpenedFiles.length >= 100
+          ? "99+"
+          : `${computedStackOpenedFiles.length}`;
+      return this.$t("STACK_FILES", { number });
+    },
+    computedMaxLenNonStack() {
+      const { listWidth } = this;
+      return Math.floor(listWidth / 80) - 1;
+    }
+  },
+  mounted() {
+    window.onresize = () => {
+      return (() => {
+        this.listWidth = this.$refs["list"].offsetWidth;
+      })();
+    };
+    this.$nextTick(() => {
+      this.listWidth = this.$refs["list"].offsetWidth;
+    });
+    this.$eventbus.$on("reset-component", () => {
+      this.showStackFiles = false;
+    });
+  },
+  methods: {
+    ...mapMutations({
+      set_rename_file_id: "file/set_rename_file_id"
+    }),
+    createFile() {
+      const id = v1();
+      const newFile = {
+        id,
+        title: "",
+        newCreated: true
       };
+      this.$set(this.files, id, newFile);
+      this.set_rename_file_id(id);
+    },
+    openStackFilePopover() {
+      if (!this.showStackFiles) this.showStackFiles = true;
     }
   }
 };
@@ -39,56 +133,38 @@ export default {
   align-items: flex-end;
   border-bottom: 1px gainsboro solid;
 }
-.tab-pill {
-  flex: 1;
-  cursor: pointer;
-  max-width: 120px;
-  min-width: 80px;
-  height: 65%;
-  border-top-right-radius: 10px;
-  border-top-left-radius: 10px;
-  border-top: 1px gainsboro solid;
-  border-right: 1px gainsboro solid;
-  border-left: 1px gainsboro solid;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-// .tab-pill:active {
-//   box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
-// }
-.file-title {
-  max-width: 70%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 12px;
-}
-.file-close {
-  width: 15%;
-  height: 50%;
-  min-height: 20px;
+.stack-file-wrapper {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0px;
+  padding: 10px;
+  width: 120px;
+  max-height: 300px;
+  border-radius: 10px;
+  z-index: 10049 !important;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  position: absolute;
-  right: 0;
-  .close-icon {
-    width: 8px;
-    height: 8px;
-  }
+  background-color: white;
+  border: 1px whitesmoke solid;
 }
-.editing {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 5px;
-  background-color: black;
-}
-.editing:hover {
+
+// before enter and after leave
+.fade-enter,
+.fade-leave-to {
   opacity: 0;
+  transform: translateX(-30px);
+}
+
+// after enter and before leave
+.fade-leave,
+.fade-enter-to {
+  opacity: 1;
+  transform: translateX(0px);
+}
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.35s;
 }
 </style>

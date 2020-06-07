@@ -1,22 +1,31 @@
 <template>
   <div class="panel-header-wrapper">
     <transition name="title-fade">
-      <div v-show="!showInput" @click="showSearchInput" class="title">
+      <div
+        v-show="!showInput"
+        @click="showSearchInput"
+        class="title display-only"
+      >
         {{ $t("MY_DOCUMENTS") }}
       </div>
     </transition>
     <transition name="input-fade">
       <div v-show="showInput" class="search-input">
-        <input />
+        <input v-model="value" @input="onInput($event)" />
       </div>
     </transition>
-    <icon name="search" class="icon" :style="computedSearchIconStyle" />
+    <icon
+      name="search"
+      class="icon"
+      :style="computedSearchIconStyle"
+      @click.native="showSearchInput"
+    />
     <transition name="input-fade">
       <icon
         v-show="showInput"
         name="close"
-        class="icon"
         style="right: 5px; cursor: pointer"
+        class="icon"
         @click.native="hideSearchInput"
       />
     </transition>
@@ -24,25 +33,72 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
+import { objToArr } from "@/common/flatten";
+const { ipcRenderer } = window.require("electron");
 export default {
   data() {
     return {
-      showInput: false
+      timer: null,
+      showInput: false,
+      value: ""
     };
   },
   computed: {
+    ...mapState("file", ["files"]),
     computedSearchIconStyle() {
       const { showInput } = this;
       if (showInput) return "right: calc(100% - 20px);transition: right 0.5s;";
       else return "right: 0;transition: right 0.5s;";
     }
   },
+  mounted() {
+    ipcRenderer.on("search", this.searchListener);
+  },
+  beforeDestroy() {
+    ipcRenderer.removeListener("search", this.searchListener);
+  },
   methods: {
     showSearchInput() {
-      this.showInput = true;
+      if (!this.showInput) this.showInput = true;
     },
     hideSearchInput() {
-      this.showInput = false;
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+      if (this.showInput) {
+        this.showInput = false;
+      }
+      if (this.value) {
+        this.value = "";
+        this.$emit("searching", false);
+        this.$emit("searched-files", null);
+      }
+    },
+    onInput(e) {
+      clearTimeout(this.timer);
+      let val = e.target.value;
+      if (val.length > 0) {
+        this.$emit("searching", true);
+        this.timer = setTimeout(() => {
+          clearTimeout(this.timer);
+          this.timer = null;
+          let newVal = val.trim(" ");
+          const searchedFiles = objToArr(this.files).filter(file =>
+            file.title.includes(newVal)
+          );
+          this.$emit("searched-files", searchedFiles);
+          this.$emit("searching", false);
+        }, 1000);
+      } else {
+        this.$emit("searching", false);
+        this.$emit("searched-files", null);
+        this.timer = null;
+      }
+    },
+    searchListener() {
+      return this.showSearchInput();
     }
   }
 };
@@ -75,6 +131,7 @@ export default {
   width: 15px;
   height: 15px;
 }
+
 .search-input {
   width: 100%;
   height: 60%;
@@ -113,6 +170,7 @@ export default {
 .title-fade-leave-active {
   transition: all 0.35s;
 }
+
 // before enter and after leave
 .input-fade-enter,
 .input-fade-leave-to {

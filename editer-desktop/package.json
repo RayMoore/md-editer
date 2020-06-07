@@ -1,7 +1,7 @@
 {
-  "name": "mdediter-desktop",
+  "name": "cokee",
   "version": "1.0.0",
-  "description": "desktop application for mdediter",
+  "description": "desktop application for cokee",
   "author": "molinz",
   "private": true,
   "main": "main.js",
@@ -12,9 +12,13 @@
     "ele": "./node_modules/.bin/electron ."
   },
   "dependencies": {
+    "electron-store": "^5.1.1",
     "mavon-editor": "^2.9.0",
+    "uuid": "^8.1.0",
     "vue": "^2.5.2",
+    "vue-element-loading": "^1.1.5",
     "vue-i18n": "^8.18.1",
+    "vue-resource": "^1.5.1",
     "vue-router": "^3.3.2",
     "vuescroll": "^4.15.1",
     "vuex": "^3.4.0"

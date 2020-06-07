@@ -1,8 +1,11 @@
 <template>
   <div class="doc-panel-wrapper">
     <div class="seperator" />
-    <panel-header />
-    <panel-content />
+    <panel-header
+      @searching="onSearchingChange"
+      @searched-files="onSearchedFilesChange"
+    />
+    <panel-content :searching="searching" :searched-files="searchedFiles" />
   </div>
 </template>
 
@@ -14,6 +17,20 @@ export default {
   components: {
     panelHeader,
     panelContent
+  },
+  data() {
+    return {
+      searching: false,
+      searchedFiles: null
+    };
+  },
+  methods: {
+    onSearchingChange(val) {
+      this.searching = val;
+    },
+    onSearchedFilesChange(val) {
+      this.searchedFiles = val;
+    }
   }
 };
 </script>
