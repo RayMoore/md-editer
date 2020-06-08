@@ -45,8 +45,6 @@ import {
   deleteFile,
   getFilePath
 } from "@/common/utils";
-import { objToArr } from "@/common/flatten";
-import { saveFilesToStore } from "@/common/store";
 const { remote } = window.require("electron");
 const { Menu, MenuItem } = remote;
 export default {
@@ -72,11 +70,11 @@ export default {
   computed: {
     ...mapState("file", [
       "files",
-      "path",
       "openedFileIds",
       "renameFileId",
       "activeFileId"
     ]),
+    ...mapState("setting", ["path"]),
     computedWrapperStyle() {
       const { showBorder, activeFileId, file } = this;
       const color = file.id === activeFileId ? "whitesmoke" : "white";
@@ -202,7 +200,6 @@ export default {
           this.remove_opened_file_id(file.id);
         if (file.id === renameFileId) this.set_rename_file_id("");
         this.$delete(files, file.id);
-        saveFilesToStore(objToArr(this.files));
       }
     },
     openThisFile() {
@@ -213,13 +210,15 @@ export default {
     },
     onInputChange(e) {
       clearTimeout(this.timer);
-      const val = e.target.value;
+      const val = e.target.value.trim();
       this.titleInvalid = checkFileName(val);
       if (val.length > 0) {
         this.timer = setTimeout(() => {
           clearTimeout(this.timer);
           this.timer = null;
-          this.titleAvailable = checkFileAvailabel(this.path, val);
+          const { file, path } = this;
+          const filePath = file.path ? file.path : path;
+          this.titleAvailable = checkFileAvailabel(filePath, val);
         }, 1000);
       } else {
         this.timer = null;
@@ -242,28 +241,32 @@ export default {
         } else if (e.keyCode === 13) {
           // Enter
           if (!newTitle || !titleAvailable || titleInvalid) return;
-          const trimmedNewTitle = newTitle.trim();
-          const filePath = getFilePath(path, trimmedNewTitle);
+          const title = newTitle.trim();
+          const filePath = file.path ? file.path : path;
+          const writePath = getFilePath(filePath, title);
           if (file.newCreated) {
             // create new file
-            await writeFile(filePath, "");
+            await writeFile(writePath, "");
             const { newCreated, ...createdFile } = file;
             const modifiedFile = {
               ...createdFile,
-              path,
-              title: trimmedNewTitle,
+              path: filePath,
+              title,
               createdAt: new Date().getTime()
             };
-            this.$set(files, file.id, modifiedFile);
-            saveFilesToStore(objToArr(this.files));
+            this.$set(this.files, file.id, modifiedFile);
           } else {
             // rename this file
-            const originalFilePath = getFilePath(file.path, file.title);
-            if (originalFilePath !== filePath) {
-              await renameFile(originalFilePath, filePath);
-              const modifiedFile = { ...file, path, title: trimmedNewTitle };
-              this.$set(files, file.id, modifiedFile);
-              saveFilesToStore(objToArr(this.files));
+            const originalFilePath = getFilePath(filePath, file.title);
+            if (originalFilePath !== writePath) {
+              await renameFile(originalFilePath, writePath);
+              const modifiedFile = {
+                ...file,
+                path: filePath,
+                title,
+                createdAt: new Date().getTime()
+              };
+              this.$set(this.files, file.id, modifiedFile);
             }
           }
           this.set_rename_file_id("");
@@ -290,32 +293,36 @@ export default {
         if (file.newCreated) this.$delete(this.files, file.id);
         return;
       }
-      const trimmedNewTitle = newTitle.trim();
-      const filePath = getFilePath(path, trimmedNewTitle);
+      const title = newTitle.trim();
+      const filePath = file.path ? file.path : path;
+      const writePath = getFilePath(filePath, title);
       if (file.newCreated) {
-        writeFile(filePath, "")
+        writeFile(writePath, "")
           .then(() => {
             const { newCreated, ...createdFile } = file;
             const modifiedFile = {
               ...createdFile,
-              path,
-              title: trimmedNewTitle,
+              path: filePath,
+              title,
               createdAt: new Date().getTime()
             };
             this.$set(this.files, file.id, modifiedFile);
-            saveFilesToStore(objToArr(this.files));
           })
           .catch(err => {
             console.log(err);
           });
       } else {
-        const originalFilePath = getFilePath(file.path, file.title);
-        if (filePath === originalFilePath) return;
-        renameFile(originalFilePath, filePath)
+        const originalFilePath = getFilePath(filePath, file.title);
+        if (writePath === originalFilePath) return;
+        renameFile(originalFilePath, writePath)
           .then(() => {
-            const modifiedFile = { ...file, path, title: trimmedNewTitle };
+            const modifiedFile = {
+              ...file,
+              path: filePath,
+              title,
+              createdAt: new Date().getTime()
+            };
             this.$set(this.files, file.id, modifiedFile);
-            saveFilesToStore(objToArr(this.files));
           })
           .catch(err => {
             console.log(err);

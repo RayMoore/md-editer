@@ -1,5 +1,5 @@
 const state = {
-  route: "md-board"
+  route: "setting-board"
 };
 
 const getters = {};

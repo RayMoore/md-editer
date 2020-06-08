@@ -7,6 +7,7 @@ const KEYS = {
 const store = new Store({ name: "store", encryptionKey: "molinz9183" });
 
 const saveFilesToStore = (files = []) => {
+  //console.log("save files");
   let filesObj = files.reduce((result, file) => {
     const { id, path, title, createdAt, updatedAt } = file;
     result[id] = {
@@ -22,6 +23,7 @@ const saveFilesToStore = (files = []) => {
 };
 
 const saveDefaultPathToStore = path => {
+  //console.log("save path");
   store.set(KEYS.DEFUALT_PATH, path);
 };
 
@@ -34,6 +36,7 @@ const getDefaultPathFromStore = () => {
 };
 
 const saveLocaleToStore = locale => {
+  //console.log("save locale");
   store.set(KEYS.LOCALE, locale);
 };
 

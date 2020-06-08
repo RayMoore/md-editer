@@ -1,5 +1,4 @@
 const state = {
-  path: "",
   files: {},
   unsavedFiles: {},
   activeFileId: "",
@@ -34,15 +33,11 @@ const actions = {
     commit("remove_opened_file_id", payload);
   },
   init_file_store: ({ commit }, payload) => {
-    const { path, files } = payload;
-    commit("set_file_path", path);
+    const { files } = payload;
     commit("set_files", files);
   }
 };
 const mutations = {
-  set_file_path(state, payload) {
-    state.path = payload;
-  },
   set_files(state, payload) {
     state.files = payload;
   },

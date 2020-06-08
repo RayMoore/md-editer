@@ -26,8 +26,6 @@
 import tabList from "./tab-list";
 import { mapState, mapMutations } from "vuex";
 import { writeFile, getFilePath } from "@/common/utils";
-import { objToArr } from "@/common/flatten";
-import { saveFilesToStore } from "@/common/store";
 
 const { ipcRenderer } = window.require("electron");
 
@@ -125,13 +123,12 @@ export default {
       writeFile(filePath, content)
         .then(() => {
           const modifiedFile = {
-            ...file,
+            ...activeFile,
             content,
             updatedAt: new Date().getTime()
           };
-          this.$set(files, file.id, modifiedFile);
-          this.$delete(unsavedFiles, file.id);
-          saveFilesToStore(objToArr(this.files));
+          this.$set(this.files, activeFile.id, modifiedFile);
+          this.$delete(unsavedFiles, activeFile.id);
         })
         .catch(err => {
           console.log(err);
@@ -169,7 +166,6 @@ export default {
       }
       this.set_files(filesCopy);
       this.set_unsaved_files(unsavedFilesCopy);
-      saveFilesToStore(objToArr(this.files));
       this.savingAll = false;
     }
   },

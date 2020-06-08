@@ -1,12 +1,12 @@
 <template>
   <div class="nav-wrapper">
     <avatar src="" class="avatar hover-black" icon-color="gainsboro" />
-    <div class="file hover-black" @click="set_route('md-board')">
+    <a class="file hover-black active-nav" @click="set_route('md-board')">
       <icon class="file-icon" name="files" style="color: gainsboro" />
-    </div>
-    <div class="cog hover-black" @click="set_route('setting-board')">
+    </a>
+    <a class="cog hover-black active-nav" @click="set_route('setting-board')">
       <icon class="cog-icon" name="cog" style="color: gainsboro" />
-    </div>
+    </a>
   </div>
 </template>
 
@@ -79,6 +79,10 @@ export default {
   }
 }
 .hover-black:hover {
-  background-color: #00000080 !important;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.active-nav:active {
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 1);
 }
 </style>

@@ -9,25 +9,30 @@ import index from "@/pages/index";
 import {
   getFilesFromStore,
   getLocaleFromStore,
-  getDefaultPathFromStore
+  getDefaultPathFromStore,
+  saveDefaultPathToStore,
+  saveLocaleToStore,
+  saveFilesToStore
 } from "@/common/store";
+import { objToArr } from "@/common/flatten";
 import { mapActions, mapState } from "vuex";
 const { remote, ipcRenderer } = window.require("electron");
 export default {
   name: "App",
   components: { index },
   computed: {
-    ...mapState("setting", ["locale"]),
+    ...mapState("setting", ["locale", "path"]),
+    ...mapState("file", ["files"]),
     computedTitle() {
       return this.$t("APP");
     }
   },
   mounted() {
-    const files = getFilesFromStore() || [];
+    const files = getFilesFromStore() || {};
     const locale = getLocaleFromStore() || remote.app.getLocale();
     const path = getDefaultPathFromStore() || remote.app.getPath("documents");
-    this.init_file_store({ path, files });
-    this.init_setting_store({ locale });
+    this.init_file_store({ files });
+    this.init_setting_store({ path, locale });
     this.$i18n.locale = locale;
   },
   methods: {
@@ -43,6 +48,13 @@ export default {
     locale(newVal, oldVal) {
       this.$i18n.locale = newVal;
       ipcRenderer.send("locale-changed", newVal);
+      saveLocaleToStore(newVal);
+    },
+    path(newVal, oldVal) {
+      saveDefaultPathToStore(newVal);
+    },
+    files(newVal, oldVal) {
+      saveFilesToStore(objToArr(newVal));
     }
   }
 };
