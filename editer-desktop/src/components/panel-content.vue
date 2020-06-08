@@ -8,6 +8,14 @@
     </div>
     <div class="empty-wrapper" v-else-if="computedFilesEmtpy">
       <span>{{ $t("EMPTY") }}</span>
+      <div class="empty-label">
+        <icon name="command" class="empty-icon" />
+        <span>{{ $t("CREATE_LABEL") }}</span>
+      </div>
+      <div class="empty-label">
+        <icon name="command" class="empty-icon" />
+        <span>{{ $t("IMPORT_LABEL") }}</span>
+      </div>
     </div>
     <div class="scroll-view" v-else>
       <vue-scroll :ops="ops">
@@ -102,6 +110,27 @@ export default {
   span {
     font-size: 16px;
     color: lightgrey;
+  }
+  .empty-label {
+    width: 90%;
+    height: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: nowrap;
+    span {
+      font-size: 14px;
+      color: lightgrey;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+  }
+  .empty-icon {
+    color: lightgrey;
+    width: 14px;
+    height: 14px;
   }
 }
 .scroll-view {

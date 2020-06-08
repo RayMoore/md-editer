@@ -45,7 +45,7 @@ import {
   deleteFile,
   getFilePath
 } from "@/common/utils";
-const { remote } = window.require("electron");
+const { remote, shell } = window.require("electron");
 const { Menu, MenuItem } = remote;
 export default {
   data() {
@@ -74,7 +74,7 @@ export default {
       "renameFileId",
       "activeFileId"
     ]),
-    ...mapState("setting", ["path"]),
+    ...mapState("setting", ["path", "locale"]),
     computedWrapperStyle() {
       const { showBorder, activeFileId, file } = this;
       const color = file.id === activeFileId ? "whitesmoke" : "white";
@@ -116,19 +116,7 @@ export default {
     this.$eventbus.$on("reset-component", () => {
       if (this.computedRenameThisFile) this.set_rename_file_id("");
     });
-    const menu = new Menu();
-    menu.append(
-      new MenuItem({ label: this.$t("OPEN"), click: this.openThisFile })
-    );
-    menu.append(
-      new MenuItem({ label: this.$t("RENAME"), click: this.renameThisFile })
-    );
-    menu.append(new MenuItem({ type: "separator" }));
-    menu.append(
-      new MenuItem({ label: this.$t("DELETE"), click: this.deleteThisFile })
-    );
-    menu.append(new MenuItem({ type: "separator" }));
-    this.menu = menu;
+    this.menu = this.buildContextMenu();
     if (this.file.newCreated) {
       this.$nextTick(() => {
         if (this.$refs["input"]) this.$refs["input"].focus();
@@ -152,6 +140,30 @@ export default {
       add_opened_file_id: "file/safe_add_opened_file_id",
       remove_opened_file_id: "file/safe_remove_opened_file_id"
     }),
+    buildContextMenu() {
+      const menu = new Menu();
+      menu.append(
+        new MenuItem({ label: this.$t("OPEN"), click: this.openThisFile })
+      );
+      menu.append(
+        new MenuItem({ label: this.$t("RENAME"), click: this.renameThisFile })
+      );
+      menu.append(new MenuItem({ type: "separator" }));
+      menu.append(
+        new MenuItem({ label: this.$t("SHOW"), click: this.showThisFile })
+      );
+      menu.append(
+        new MenuItem({ label: this.$t("REMOVE"), click: this.removeThisFile })
+      );
+      menu.append(new MenuItem({ type: "separator" }));
+      menu.append(
+        new MenuItem({ label: this.$t("TRASH"), click: this.trashThisFile })
+      );
+      menu.append(
+        new MenuItem({ label: this.$t("DELETE"), click: this.deleteThisFile })
+      );
+      return menu;
+    },
     addOpenedFile() {
       const { openedFileIds, renameFileId, file, files } = this;
       if (!openedFileIds.includes(file.id)) {
@@ -201,6 +213,20 @@ export default {
         if (file.id === renameFileId) this.set_rename_file_id("");
         this.$delete(files, file.id);
       }
+    },
+    removeThisFile() {
+      const { file } = this;
+      this.$delete(this.files, file.id);
+    },
+    showThisFile() {
+      const { file } = this;
+      shell.showItemInFolder(file.path);
+    },
+    trashThisFile() {
+      const { file } = this;
+      const fileFullPath = getFilePath(file.path, file.title);
+      shell.moveItemToTrash(fileFullPath);
+      this.$delete(this.files, file.id);
     },
     openThisFile() {
       return this.addOpenedFile();
@@ -328,6 +354,9 @@ export default {
             console.log(err);
           });
       }
+    },
+    locale(newVal, oldVal) {
+      this.menu = this.buildContextMenu();
     }
   }
 };

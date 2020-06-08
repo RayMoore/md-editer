@@ -37,6 +37,11 @@ import fileTab from "./file-tab";
 import fileStackTab from "./file-stack-tab";
 import vueScroll from "vuescroll";
 import { SCROLL_OPS } from "@/common/config";
+import { getSeparator } from "@/common/utils";
+import { EXT, EXT_NAME } from "@/common/config";
+
+const { ipcRenderer, remote } = window.require("electron");
+const { dialog } = remote;
 
 export default {
   components: {
@@ -53,6 +58,7 @@ export default {
   },
   computed: {
     ...mapState("file", ["files", "openedFileIds"]),
+    ...mapState("setting", ["path"]),
     computedTotalOpenedFiles() {
       const { files, openedFileIds } = this;
       return openedFileIds.map(id => {
@@ -100,6 +106,12 @@ export default {
     this.$eventbus.$on("reset-component", () => {
       this.showStackFiles = false;
     });
+    ipcRenderer.on("create", this.onCreateFile);
+    ipcRenderer.on("import", this.onImportFile);
+  },
+  beforeDestroy() {
+    ipcRenderer.removeListener("create", this.onCreateFile);
+    ipcRenderer.removeListener("import", this.onImportFile);
   },
   methods: {
     ...mapMutations({
@@ -117,6 +129,32 @@ export default {
     },
     openStackFilePopover() {
       if (!this.showStackFiles) this.showStackFiles = true;
+    },
+    onCreateFile() {
+      return this.createFile();
+    },
+    onImportFile() {
+      const filesImported = dialog.showOpenDialogSync(
+        remote.getCurrentWindow(),
+        {
+          title: this.$t("IMPORT_FILE_TITLE"),
+          defaultPath: this.path,
+          filters: [{ name: "markdown", extensions: [EXT_NAME] }],
+          properties: ["openFile", "multiSelections"]
+        }
+      );
+      if (filesImported) {
+        const separator = getSeparator();
+        filesImported.map(pathStr => {
+          const id = v1();
+          const fileName = pathStr.split(separator).pop();
+          const title = fileName.split(EXT).shift();
+          const createdAt = new Date().getTime();
+          const path = pathStr.split(separator + title).shift();
+          const newFile = { id, title, path, createdAt };
+          this.$set(this.files, id, newFile);
+        });
+      }
     }
   }
 };

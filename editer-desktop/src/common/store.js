@@ -2,7 +2,8 @@ const Store = window.require("electron-store");
 const KEYS = {
   FILES: "files",
   DEFUALT_PATH: "default-path",
-  LOCALE: "language"
+  LOCALE: "language",
+  FONT: "font"
 };
 const store = new Store({ name: "store", encryptionKey: "molinz9183" });
 
@@ -25,6 +26,14 @@ const saveFilesToStore = (files = []) => {
 const saveDefaultPathToStore = path => {
   //console.log("save path");
   store.set(KEYS.DEFUALT_PATH, path);
+};
+
+const getFontFromStore = () => {
+  return store.get(KEYS.FONT);
+};
+
+const saveFontToStore = font => {
+  store.set(KEYS.FONT, font);
 };
 
 const getFilesFromStore = () => {
@@ -50,5 +59,7 @@ export {
   saveDefaultPathToStore,
   getDefaultPathFromStore,
   saveLocaleToStore,
-  getLocaleFromStore
+  getLocaleFromStore,
+  getFontFromStore,
+  saveFontToStore
 };

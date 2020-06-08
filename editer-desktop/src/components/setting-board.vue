@@ -14,6 +14,7 @@
             @change="changeLocale"
             v-model="selectedLang"
             class="custom-select"
+            :style="computedFontStyle"
           >
             <option
               :value="lang"
@@ -31,6 +32,25 @@
           <div class="custom-input display-only" @click="changeStoragePath">
             <span>{{ path }}</span>
           </div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-item-label display-only">
+            <icon name="font" />
+            <span>{{ $t("FONT") }}</span>
+          </div>
+          <select
+            @change="changeFont"
+            v-model="selectedFont"
+            class="custom-select"
+            :style="computedFontStyle"
+          >
+            <option
+              :value="myFont"
+              v-for="(myFont, index) in fontSet"
+              :key="index"
+              >{{ myFont }}</option
+            >
+          </select>
         </div>
       </vue-scroll>
     </div>
@@ -53,14 +73,17 @@ export default {
     return {
       ops: SCROLL_OPS,
       selectedLang: "",
-      langSet: ["en-US", "zh-CN"]
+      selectedFont: "",
+      langSet: ["en-US", "zh-CN"],
+      fontSet: ["Ai-Deep", "ArimaKoshi-Regular", "ArimaKoshi-Medium"]
     };
   },
   created() {
     this.selectedLang = this.locale;
+    this.selectedFont = this.font;
   },
   computed: {
-    ...mapState("setting", ["locale", "path"]),
+    ...mapState("setting", ["locale", "path", "font"]),
     computedLocaleIconName() {
       return this.selectedLang;
     },
@@ -75,12 +98,17 @@ export default {
             return this.$t("LANGUAGE_SELECTION");
         }
       };
+    },
+    computedFontStyle() {
+      const { font } = this;
+      return `font-family: ${font}`;
     }
   },
   methods: {
     ...mapMutations({
       set_path: "setting/set_path",
-      set_locale: "setting/set_locale"
+      set_locale: "setting/set_locale",
+      set_font: "setting/set_font"
     }),
     changeStoragePath() {
       const selectedPathArr = dialog.showOpenDialogSync(
@@ -97,11 +125,18 @@ export default {
     changeLocale(e) {
       const selectedLocale = e.target.value;
       if (this.locale !== selectedLocale) this.set_locale(selectedLocale);
+    },
+    changeFont(e) {
+      const selectedFont = e.target.value;
+      if (this.font !== selectedFont) this.set_font(selectedFont);
     }
   },
   watch: {
     locale(newVal, oldVal) {
       this.selectedLang = newVal;
+    },
+    font(newVal, oldVal) {
+      this.selectedFont = newVal;
     }
   }
 };
@@ -166,7 +201,6 @@ export default {
   span {
     font-size: 18px;
     margin-left: 5px;
-    margin-top: -5px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

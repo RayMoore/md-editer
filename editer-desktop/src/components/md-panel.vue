@@ -15,7 +15,7 @@
       class="editor"
       :value="computedEditorValue"
       :box-shadow="false"
-      style="font-family: NotoSans"
+      :style="computedFontStyle"
       :placeholder="$t('START_EDITING')"
       @change="onContentChange"
     />
@@ -85,7 +85,7 @@ export default {
       "openedFileIds",
       "unsavedFiles"
     ]),
-    ...mapState("setting", ["locale"]),
+    ...mapState("setting", ["locale", "font"]),
     computedEditorValue() {
       const { activeFileId, files, openedFileIds, unsavedFiles } = this;
       if (!activeFileId || openedFileIds.length === 0) return "";
@@ -93,6 +93,10 @@ export default {
       const unsavedFileContent = unsavedFiles[activeFileId];
       if (!activeFile) return "";
       return unsavedFileContent || activeFile.content || "";
+    },
+    computedFontStyle() {
+      const { font } = this;
+      return `font-family: ${font}`;
     }
   },
   methods: {
@@ -168,8 +172,7 @@ export default {
       this.set_unsaved_files(unsavedFilesCopy);
       this.savingAll = false;
     }
-  },
-  watch: {}
+  }
 };
 </script>
 

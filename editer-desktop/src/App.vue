@@ -1,5 +1,10 @@
 <template>
-  <div id="app" v-title="computedTitle" @click.stop="resetComponent">
+  <div
+    id="app"
+    v-title="computedTitle"
+    @click.stop="resetComponent"
+    :style="computedFontStyle"
+  >
     <index />
   </div>
 </template>
@@ -10,9 +15,11 @@ import {
   getFilesFromStore,
   getLocaleFromStore,
   getDefaultPathFromStore,
+  getFontFromStore,
   saveDefaultPathToStore,
   saveLocaleToStore,
-  saveFilesToStore
+  saveFilesToStore,
+  saveFontToStore
 } from "@/common/store";
 import { objToArr } from "@/common/flatten";
 import { mapActions, mapState } from "vuex";
@@ -21,18 +28,23 @@ export default {
   name: "App",
   components: { index },
   computed: {
-    ...mapState("setting", ["locale", "path"]),
+    ...mapState("setting", ["locale", "path", "font"]),
     ...mapState("file", ["files"]),
     computedTitle() {
       return this.$t("APP");
+    },
+    computedFontStyle() {
+      const { font } = this;
+      return `font-family: ${font}`;
     }
   },
   mounted() {
     const files = getFilesFromStore() || {};
     const locale = getLocaleFromStore() || remote.app.getLocale();
     const path = getDefaultPathFromStore() || remote.app.getPath("documents");
+    const font = getFontFromStore() || "Ai-Deep";
     this.init_file_store({ files });
-    this.init_setting_store({ path, locale });
+    this.init_setting_store({ path, locale, font });
     this.$i18n.locale = locale;
   },
   methods: {
@@ -55,6 +67,9 @@ export default {
     },
     files(newVal, oldVal) {
       saveFilesToStore(objToArr(newVal));
+    },
+    font(newVal, oldVal) {
+      saveFontToStore(newVal);
     }
   }
 };
@@ -68,7 +83,6 @@ body {
   margin: 0;
 }
 #app {
-  font-family: "NotoSans";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   width: 100vw;

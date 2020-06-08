@@ -1,14 +1,16 @@
 const state = {
   path: "",
-  locale: ""
+  locale: "en-US",
+  font: "Ai-Deep"
 };
 
 const getters = {};
 const actions = {
   init_setting_store({ commit }, payload) {
-    const { path, locale } = payload;
+    const { path, locale, font } = payload;
     commit("set_locale", locale);
     commit("set_path", path);
+    commit("set_font", font);
   }
 };
 const mutations = {
@@ -17,6 +19,9 @@ const mutations = {
   },
   set_path(state, payload) {
     state.path = payload;
+  },
+  set_font(state, payload) {
+    state.font = payload;
   }
 };
 

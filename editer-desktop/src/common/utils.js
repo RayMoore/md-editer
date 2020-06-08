@@ -52,5 +52,6 @@ export {
   writeFile,
   renameFile,
   deleteFile,
-  getFilePath
+  getFilePath,
+  getSeparator
 };
