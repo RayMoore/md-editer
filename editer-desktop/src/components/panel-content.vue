@@ -3,10 +3,13 @@
     <div class="searching-wrapper" v-if="searching">
       <vloading :active="true" spinner="mini-spinner" color="black" size="25" />
     </div>
-    <div class="searching-wrapper" v-else-if="computedSearchedFilesEmpty">
+    <div
+      class="searching-wrapper display-only"
+      v-else-if="computedSearchedFilesEmpty"
+    >
       <span>{{ $t("NO_RESULT_FOUND") }}</span>
     </div>
-    <div class="empty-wrapper" v-else-if="computedFilesEmtpy">
+    <div class="empty-wrapper display-only" v-else-if="computedFilesEmtpy">
       <span>{{ $t("EMPTY") }}</span>
       <div class="empty-label">
         <icon name="command" class="empty-icon" />

@@ -76,7 +76,6 @@ export default {
 </script>
 
 <style>
-@import "./assets/font/font.css";
 @import "../static/style.scss";
 html,
 body {

@@ -87,11 +87,13 @@ export default {
     },
     computedInputStyle() {
       const { titleInvalid, newTitle, file, titleAvailable } = this;
-      if (file.newCreated && (!newTitle || !titleInvalid))
+      if (file.newCreated && !titleInvalid && titleAvailable) {
         return "border-color: cornflowerblue; border-style: solid";
-      else if (titleInvalid || !titleAvailable || !newTitle)
+      }
+      if (!titleAvailable || titleInvalid || !newTitle) {
         return "border-color: var(--main-color-danger); border-style: solid";
-      else return "";
+      }
+      return "";
     },
     computedShowTitleError() {
       const {
@@ -238,6 +240,7 @@ export default {
       clearTimeout(this.timer);
       const val = e.target.value.trim();
       this.titleInvalid = checkFileName(val);
+      if (!this.titleAvailable) this.titleAvailable = true;
       if (val.length > 0) {
         this.timer = setTimeout(() => {
           clearTimeout(this.timer);
@@ -245,7 +248,7 @@ export default {
           const { file, path } = this;
           const filePath = file.path ? file.path : path;
           this.titleAvailable = checkFileAvailabel(filePath, val);
-        }, 1000);
+        }, 500);
       } else {
         this.timer = null;
       }

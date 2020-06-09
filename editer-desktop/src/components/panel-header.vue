@@ -20,9 +20,9 @@
       :style="computedSearchIconStyle"
       @click.native="showSearchInput"
     />
-    <transition name="input-fade">
+    <transition name="close-fade">
       <icon
-        v-show="showInput"
+        v-if="showInput"
         name="close"
         style="right: 5px; cursor: pointer"
         class="icon"
@@ -117,9 +117,9 @@ export default {
   align-items: center;
   position: relative;
   .title {
-    width: 100%;
-    height: 100%;
-    font-size: 14px;
+    // width: 100%;
+    // height: 100%;
+    font-size: 15px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -133,7 +133,7 @@ export default {
 }
 
 .search-input {
-  width: 100%;
+  // width: 100%;
   height: 60%;
   display: flex;
   flex-direction: row;
@@ -156,12 +156,18 @@ export default {
 .title-fade-enter,
 .title-fade-leave-to {
   opacity: 0;
+  visibility: hidden;
+  width: 0;
+  height: 0;
 }
 
 // after enter and before leave
 .title-fade-leave,
 .title-fade-enter-to {
   opacity: 1;
+  visibility: visible;
+  width: 100%;
+  height: 100%;
 }
 .title-fade-enter-active {
   transition: all 0.35s;
@@ -175,18 +181,39 @@ export default {
 .input-fade-enter,
 .input-fade-leave-to {
   opacity: 0;
+  visibility: hidden;
+  width: 0;
 }
-
 // after enter and before leave
 .input-fade-leave,
 .input-fade-enter-to {
   opacity: 1;
+  visibility: visible;
+  width: 100%;
 }
 .input-fade-enter-active {
-  transition: all 0.35s;
+  transition: all 0.1s;
   transition-delay: 0.5s;
 }
 .input-fade-leave-active {
+  transition: all 0s;
+}
+
+// before enter and after leave
+.close-fade-enter,
+.close-fade-leave-to {
+  opacity: 0;
+}
+// after enter and before leave
+.close-fade-leave,
+.close-fade-enter-to {
+  opacity: 1;
+}
+.close-fade-enter-active {
+  transition: all 0.35s;
+  transition-delay: 0.5s;
+}
+.close-fade-leave-active {
   transition: all 0s;
 }
 </style>

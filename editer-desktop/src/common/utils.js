@@ -1,4 +1,3 @@
-const fs_promise = window.require("fs").promises;
 const fs = window.require("fs");
 import { EXT } from "./config";
 
@@ -30,19 +29,39 @@ const checkFileAvailabel = (path, name) => {
 };
 
 const readFile = path => {
-  return fs_promise.readFile(path, { encoding: "utf8" });
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, { encoding: "uft8" }, (err, data) => {
+      if (err) return reject(err);
+      return resolve(data);
+    });
+  });
 };
 
 const writeFile = (path, content) => {
-  return fs_promise.writeFile(path, content, { encoding: "utf8" });
+  return new Promise((resolve, reject) => {
+    fs.writeFile(path, content, { encoding: "utf8" }, err => {
+      if (err) return reject(err);
+      return resolve();
+    });
+  });
 };
 
 const renameFile = (path, newPath) => {
-  return fs_promise.rename(path, newPath);
+  return new Promise((resolve, reject) => {
+    fs.rename(path, newPath, err => {
+      if (err) return reject(err);
+      return resolve();
+    });
+  });
 };
 
 const deleteFile = path => {
-  return fs_promise.unlink(path);
+  return new Promise((resolve, reject) => {
+    fs.unlink(path, err => {
+      if (err) return reject(err);
+      return resolve();
+    });
+  });
 };
 
 export {
