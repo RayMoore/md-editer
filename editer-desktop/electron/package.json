@@ -8,15 +8,13 @@
   "description": "desktop markdown editor application",
   "build": {
     "electronVersion": "9.0.2",
-    "appId": "com.cokewise.${name}",
+    "appId": "com.cokewise.cokee",
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "copyright": "Copyright © 2020 ${author}",
-    "publish": [
-      {
-        "provider": "generic",
-        "url": "https://cokewise.com/download/cokee"
-      }
-    ],
+    "publish": [{
+      "provider": "generic",
+      "url": "https://cokewise.com/download/cokee"
+    }],
     "directories": {
       "buildResources": "assets"
     },
@@ -43,8 +41,7 @@
       "background": "assets/appdmgwitharrow.png",
       "icon": "assets/icon.icns",
       "iconSize": 80,
-      "contents": [
-        {
+      "contents": [{
           "x": 400,
           "y": 180,
           "type": "link",
