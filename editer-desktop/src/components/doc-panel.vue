@@ -37,8 +37,8 @@ export default {
 
 <style lang="scss" scoped>
 .doc-panel-wrapper {
-  width: 10%;
-  min-width: 150px;
+  width: 15%;
+  min-width: 200px;
   height: 100%;
   display: flex;
   flex-direction: column;

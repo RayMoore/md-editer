@@ -1,9 +1,8 @@
 const { app, BrowserWindow, Menu, ipcMain } = require("electron");
-const isDev = require("electron-is-dev");
 const path = require("path");
 const menuBuilder = require("./menu-builder");
 
-const ICON_PATH = path.join(__dirname, "/icon.png");
+const ICON_PATH = path.join(__dirname, "/assets/icon.png");
 const TITLE = "Cokee";
 
 let mainWindow = null;
@@ -14,14 +13,14 @@ const createWindow = () => {
     height: 768,
     minWidth: 1024,
     minHeight: 600,
-    icon: ICON_PATH,
     title: TITLE,
+    icon: ICON_PATH,
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true
     }
   });
-  const urlLocation = isDev ? "http://localhost:8080" : "";
+  const urlLocation = `file://${__dirname}/index.html`;
   mainWindow.loadURL(urlLocation);
   // default menu
   const locale = app.getLocale() || "en-US";

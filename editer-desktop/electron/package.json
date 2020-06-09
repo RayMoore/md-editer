@@ -1,0 +1,72 @@
+{
+  "name": "cokee",
+  "productName": "Cokee",
+  "author": "cokewise.com",
+  "license": "MIT",
+  "version": "1.0.0",
+  "main": "main.js",
+  "description": "desktop markdown editor application",
+  "build": {
+    "electronVersion": "9.0.2",
+    "appId": "com.cokewise.${name}",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "copyright": "Copyright © 2020 ${author}",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://cokewise.com/download/cokee"
+      }
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "msi"
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "publisherName": "${author}"
+    },
+    "nsis": {
+      "allowToChangeInstallationDirectory": true,
+      "oneClick": false,
+      "perMachine": false,
+      "installerIcon": "assets/icon.ico"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "background": "assets/appdmgwitharrow.png",
+      "icon": "assets/icon.icns",
+      "iconSize": 80,
+      "contents": [
+        {
+          "x": 400,
+          "y": 180,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 100,
+          "y": 180,
+          "type": "file"
+        }
+      ],
+      "window": {
+        "width": 500,
+        "height": 350
+      }
+    }
+  },
+  "devDependencies": {
+    "electron": "^9.0.2",
+    "electron-builder": "^21.2.0"
+  },
+  "dependencies": {
+    "electron-store": "^5.2.0"
+  }
+}

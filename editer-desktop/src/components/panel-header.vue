@@ -6,7 +6,7 @@
         @click="showSearchInput"
         class="title display-only"
       >
-        {{ $t("MY_DOCUMENTS") }}
+        <span>{{ $t("MY_DOCUMENTS") }}</span>
       </div>
     </transition>
     <transition name="input-fade">
@@ -49,7 +49,7 @@ export default {
     computedSearchIconStyle() {
       const { showInput } = this;
       if (showInput) return "right: calc(100% - 20px);transition: right 0.5s;";
-      else return "right: 0;transition: right 0.5s;";
+      return "right: 0;transition: right 0.5s;";
     }
   },
   mounted() {
@@ -116,15 +116,6 @@ export default {
   justify-content: flex-start;
   align-items: center;
   position: relative;
-  .title {
-    // width: 100%;
-    // height: 100%;
-    font-size: 15px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-  }
 }
 .icon {
   position: absolute;
@@ -132,8 +123,22 @@ export default {
   height: 15px;
 }
 
+.title {
+  font-size: 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  span {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
 .search-input {
-  // width: 100%;
+  width: 100%;
   height: 60%;
   display: flex;
   flex-direction: row;
@@ -157,8 +162,8 @@ export default {
 .title-fade-leave-to {
   opacity: 0;
   visibility: hidden;
-  width: 0;
-  height: 0;
+  width: 0%;
+  height: 0%;
 }
 
 // after enter and before leave
@@ -174,7 +179,7 @@ export default {
   transition-delay: 0.25s;
 }
 .title-fade-leave-active {
-  transition: all 0.35s;
+  transition: all 0.2s;
 }
 
 // before enter and after leave
@@ -182,14 +187,12 @@ export default {
 .input-fade-leave-to {
   opacity: 0;
   visibility: hidden;
-  width: 0;
 }
 // after enter and before leave
 .input-fade-leave,
 .input-fade-enter-to {
   opacity: 1;
   visibility: visible;
-  width: 100%;
 }
 .input-fade-enter-active {
   transition: all 0.1s;
