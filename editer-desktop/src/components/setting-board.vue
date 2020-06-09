@@ -7,7 +7,7 @@
       <vue-scroll :ops="ops">
         <div class="setting-item">
           <div class="setting-item-label display-only">
-            <icon :name="computedLocaleIconName" />
+            <icon name="locale" />
             <span>{{ $t("LANGUAGE") }}</span>
           </div>
           <select

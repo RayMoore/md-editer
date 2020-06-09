@@ -30,8 +30,8 @@ export default {
     LANGUAGE_SELECTION: "Default",
     FILE_STORAGE_PATH: "Storage:",
     FONT: "Font:",
-    ZH_CN: "Simplified Chinese",
-    EN_US: "English(United States)",
+    ZH_CN: "🇨🇳 - Simplified Chinese",
+    EN_US: "🇺🇸 - English(United States)",
 
     // ERROR
     CANNOT_OPEN_FILE: "Cannot open this file",
@@ -74,8 +74,8 @@ export default {
     LANGUAGE_SELECTION: "选择默认语言",
     FILE_STORAGE_PATH: "存储路径：",
     FONT: "字体：",
-    ZH_CN: "简体中文",
-    EN_US: "英语（美国）",
+    ZH_CN: "🇨🇳 - 简体中文",
+    EN_US: "🇺🇸 - 英语（美国）",
 
     // ERROR
     CANNOT_OPEN_FILE: "无法打开此文件",
