@@ -2,24 +2,27 @@ const { app, BrowserWindow, Menu, ipcMain } = require("electron");
 const path = require("path");
 const menuBuilder = require("./menu-builder");
 
-const ICON_PATH = path.join(__dirname, "/assets/icon.png");
 const TITLE = "Cokee";
 
 let mainWindow = null;
 
+let windowOption = {
+  width: 1440,
+  height: 768,
+  minWidth: 1024,
+  minHeight: 600,
+  title: TITLE,
+  webPreferences: {
+    nodeIntegration: true,
+    enableRemoteModule: true
+  }
+};
+
 const createWindow = () => {
-  mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 768,
-    minWidth: 1024,
-    minHeight: 600,
-    title: TITLE,
-    icon: ICON_PATH,
-    webPreferences: {
-      nodeIntegration: true,
-      enableRemoteModule: true
-    }
-  });
+  if (process.platform === "win32") {
+    windowOption["icon"] = path.join(__dirname, "/assets/icon.png");
+  }
+  mainWindow = new BrowserWindow(windowOption);
   const urlLocation = `file://${__dirname}/index.html`;
   mainWindow.loadURL(urlLocation);
   // default menu
