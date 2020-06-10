@@ -1,5 +1,6 @@
 <template>
   <div class="content-wrapper">
+    <div class="border-top"></div>
     <md-board v-show="isVisible('md-board')" />
     <setting-board v-show="isVisible('setting-board')" />
   </div>
@@ -34,5 +35,14 @@ export default {
   flex-direction: row;
   justify-content: center;
   align-items: center;
+  position: relative;
+}
+.border-top{
+  position:absolute;
+  top:0;
+  left: 0;
+  width: 100%;
+  height: 0.5px;
+  background-color: #303030;
 }
 </style>

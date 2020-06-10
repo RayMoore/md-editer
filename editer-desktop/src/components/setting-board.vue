@@ -119,7 +119,7 @@ export default {
           properties: ["openDirectory", "createDirectory", "promptToCreate"]
         }
       );
-      const selectedPath = selectedPathArr[0];
+      const selectedPath = selectedPathArr? selectedPathArr[0]:null;
       if (selectedPath) this.set_path(selectedPath);
     },
     changeLocale(e) {

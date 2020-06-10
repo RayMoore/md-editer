@@ -43,7 +43,7 @@ import {
   renameFile,
   readFile,
   deleteFile,
-  getFilePath
+  getFilePath,
 } from "@/common/utils";
 const { remote, shell } = window.require("electron");
 const { Menu, MenuItem } = remote;
@@ -54,25 +54,25 @@ export default {
       timer: null,
       titleInvalid: false,
       titleAvailable: true,
-      menu: null
+      menu: null,
     };
   },
   props: {
     file: {
       type: Object,
-      required: true
+      required: true,
     },
     showBorder: {
       type: Boolean,
-      default: true
-    }
+      default: true,
+    },
   },
   computed: {
     ...mapState("file", [
       "files",
       "openedFileIds",
       "renameFileId",
-      "activeFileId"
+      "activeFileId",
     ]),
     ...mapState("setting", ["path", "locale"]),
     computedWrapperStyle() {
@@ -101,7 +101,7 @@ export default {
         renameFileId,
         titleInvalid,
         newTitle,
-        titleAvailable
+        titleAvailable,
       } = this;
       if (renameFileId === file.id) {
         // current editing file title
@@ -111,12 +111,58 @@ export default {
         }
       }
       return false;
-    }
+    },
   },
 
   mounted() {
     this.$eventbus.$on("reset-component", () => {
-      if (this.computedRenameThisFile) this.set_rename_file_id("");
+      if (this.computedRenameThisFile) {
+        // currently editing this doc item
+        // triggered not from keyboard
+        const { file, newTitle, titleAvailable, titleInvalid, path } = this;
+        if (!newTitle || !titleAvailable || titleInvalid) {
+          if (file.newCreated) this.$delete(this.files, file.id);
+          return;
+        }
+        const title = newTitle.trim();
+        const filePath = file.path ? file.path : path;
+        const writePath = getFilePath(filePath, title);
+        if (file.newCreated) {
+          try {
+            writeFile(writePath, "");
+            const { newCreated, ...createdFile } = file;
+            const modifiedFile = {
+              ...createdFile,
+              path: filePath,
+              title,
+              createdAt: new Date().getTime(),
+            };
+            this.$set(this.files, file.id, modifiedFile);
+          } catch (err) {
+            this.$delete(this.files, file.id);
+          }
+        } else {
+          const originalFilePath = getFilePath(filePath, file.title);
+          if (writePath === originalFilePath) return;
+          try {
+            renameFile(originalFilePath, writePath);
+            const modifiedFile = {
+              ...file,
+              path: filePath,
+              title,
+              createdAt: new Date().getTime(),
+            };
+            this.$set(this.files, file.id, modifiedFile);
+          } catch (err) {
+            this.$alert.show({
+              type: "warning",
+              message: this.$t("RENAME_FILE_ERROR", { name: title }),
+              interval: 3000,
+            });
+            return;
+          }
+        }
+      }
     });
     this.menu = this.buildContextMenu();
     if (this.file.newCreated) {
@@ -136,11 +182,11 @@ export default {
   methods: {
     ...mapMutations({
       set_active_file_id: "file/set_active_file_id",
-      set_rename_file_id: "file/set_rename_file_id"
+      set_rename_file_id: "file/set_rename_file_id",
     }),
     ...mapActions({
       add_opened_file_id: "file/safe_add_opened_file_id",
-      remove_opened_file_id: "file/safe_remove_opened_file_id"
+      remove_opened_file_id: "file/safe_remove_opened_file_id",
     }),
     buildContextMenu() {
       const menu = new Menu();
@@ -167,31 +213,27 @@ export default {
       return menu;
     },
     addOpenedFile() {
-      const { openedFileIds, renameFileId, file, files } = this;
-      if (!openedFileIds.includes(file.id)) {
+      const { openedFileIds, renameFileId, activeFileId, file, files } = this;
+      if (file.content === undefined) {
         // this file is new added to the opened file list
-        if (!file.content) {
+        try {
           const filePath = getFilePath(file.path, file.title);
-          return readFile(filePath)
-            .then(content => {
-              const modifiedFile = { ...file, content };
-              this.$set(files, file.id, modifiedFile);
-              this.add_opened_file_id(file.id);
-              this.set_active_file_id(file.id);
-              this.set_rename_file_id("");
-              this.$eventbus.$emit("reset-component");
-            })
-            .catch(err => {
-              return this.$alert.show({
-                type: "warning",
-                message: this.$t("CANNOT_OPEN_FILE")
-              });
-            });
+          const content = readFile(filePath);
+          console.log(content);
+          const modifiedFile = { ...file, content };
+          this.$set(this.files, file.id, modifiedFile);
+        } catch (err) {
+          this.$alert.show({
+            type: "danger",
+            message: this.$t("READ_FILE_ERROR", { name: file.title }),
+            interval: 5000,
+          });
+          return;
         }
-        this.add_opened_file_id(file.id);
       }
-      this.set_active_file_id(file.id);
-      this.set_rename_file_id("");
+      if (renameFileId === file.id) this.set_rename_file_id("");
+      if (!openedFileIds.includes(file.id)) this.add_opened_file_id(file.id);
+      if (activeFileId !== file.id) this.set_active_file_id(file.id);
       this.$eventbus.$emit("reset-component");
     },
     rightClick() {
@@ -202,18 +244,22 @@ export default {
       const { file } = this;
       this.set_rename_file_id(file.id);
     },
-    async deleteThisFile() {
+    deleteThisFile() {
       const { file, files, openedFileIds, renameFileId } = this;
       try {
         const filePath = getFilePath(file.path, file.title);
-        await deleteFile(filePath);
-      } catch (err) {
-        console.log(err);
-      } finally {
+        deleteFile(filePath);
         if (openedFileIds.includes(file.id))
           this.remove_opened_file_id(file.id);
         if (file.id === renameFileId) this.set_rename_file_id("");
-        this.$delete(files, file.id);
+        this.$delete(this.files, file.id);
+      } catch (err) {
+        this.$alert.show({
+          type: "danger",
+          message: this.$t("DELETE_FILE_ERROR", { name: file.title }),
+          interval: 5000,
+        });
+        return;
       }
     },
     removeThisFile() {
@@ -253,115 +299,90 @@ export default {
         this.timer = null;
       }
     },
-    async onKeyUp(e) {
+    onKeyUp(e) {
       const {
         file,
         files,
         newTitle,
         titleAvailable,
         titleInvalid,
-        path
+        path,
       } = this;
-      try {
-        if (e.keyCode === 27) {
-          // Escape
-          if (file.newCreated) this.$delete(files, file.id);
-          this.set_rename_file_id("");
-        } else if (e.keyCode === 13) {
-          // Enter
-          if (!newTitle || !titleAvailable || titleInvalid) return;
-          const title = newTitle.trim();
-          const filePath = file.path ? file.path : path;
-          const writePath = getFilePath(filePath, title);
-          if (file.newCreated) {
-            // create new file
-            await writeFile(writePath, "");
+      if (e.keyCode === 27) {
+        // Escape
+        this.set_rename_file_id("");
+        if (file.newCreated) this.$delete(files, file.id);
+        return;
+      }
+      if (e.keyCode === 13) {
+        // Enter
+        if (!newTitle || !titleAvailable || titleInvalid) return;
+        const title = newTitle.trim();
+        const filePath = file.path ? file.path : path;
+        const writePath = getFilePath(filePath, title);
+        if (file.newCreated) {
+          // create new file
+          try {
+            writeFile(writePath, "");
             const { newCreated, ...createdFile } = file;
             const modifiedFile = {
               ...createdFile,
               path: filePath,
               title,
-              createdAt: new Date().getTime()
+              createdAt: new Date().getTime(),
             };
             this.$set(this.files, file.id, modifiedFile);
-          } else {
-            // rename this file
-            const originalFilePath = getFilePath(filePath, file.title);
-            if (originalFilePath !== writePath) {
-              await renameFile(originalFilePath, writePath);
+            this.set_rename_file_id("");
+          } catch (err) {
+            this.$alert.show({
+              type: "warning",
+              message: this.$t("CREATE_FILE_ERROR", { name: title }),
+              interval: 3000,
+            });
+            return;
+          }
+        } else {
+          // rename this file
+          const originalFilePath = getFilePath(filePath, file.title);
+          if (originalFilePath !== writePath) {
+            try {
+              renameFile(originalFilePath, writePath);
               const modifiedFile = {
                 ...file,
                 path: filePath,
                 title,
-                createdAt: new Date().getTime()
+                createdAt: new Date().getTime(),
               };
               this.$set(this.files, file.id, modifiedFile);
+              this.set_rename_file_id("");
+            } catch (err) {
+              this.$alert.show({
+                type: "warning",
+                message: this.$t("RENAME_FILE_ERROR", { name: title }),
+                interval: 3000,
+              });
+              return;
             }
           }
-          this.set_rename_file_id("");
-        } else {
-          // pass
         }
-      } catch (err) {
-        console.log(err);
-        this.set_rename_file_id("");
-        if (file.newCreated) this.$delete(files, file.id);
+        return;
       }
-    }
+    },
   },
   watch: {
     renameFileId(newVal, oldVal) {
-      const { file, newTitle, titleAvailable, titleInvalid, path } = this;
+      const { file } = this;
       if (newVal === file.id) {
         // rename active
         return this.$nextTick(() => {
           this.$refs["input"].focus();
         });
       }
-      if (!newTitle || !titleAvailable || titleInvalid) {
-        if (file.newCreated) this.$delete(this.files, file.id);
-        return;
-      }
-      const title = newTitle.trim();
-      const filePath = file.path ? file.path : path;
-      const writePath = getFilePath(filePath, title);
-      if (file.newCreated) {
-        writeFile(writePath, "")
-          .then(() => {
-            const { newCreated, ...createdFile } = file;
-            const modifiedFile = {
-              ...createdFile,
-              path: filePath,
-              title,
-              createdAt: new Date().getTime()
-            };
-            this.$set(this.files, file.id, modifiedFile);
-          })
-          .catch(err => {
-            console.log(err);
-          });
-      } else {
-        const originalFilePath = getFilePath(filePath, file.title);
-        if (writePath === originalFilePath) return;
-        renameFile(originalFilePath, writePath)
-          .then(() => {
-            const modifiedFile = {
-              ...file,
-              path: filePath,
-              title,
-              createdAt: new Date().getTime()
-            };
-            this.$set(this.files, file.id, modifiedFile);
-          })
-          .catch(err => {
-            console.log(err);
-          });
-      }
     },
     locale(newVal, oldVal) {
       this.menu = this.buildContextMenu();
-    }
-  }
+    },
+  },
 };
 </script>
 

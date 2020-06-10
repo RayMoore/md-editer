@@ -11,7 +11,7 @@
       :short-cut="false"
       :language="locale"
       :toolbars="toolbars"
-      v-show="openedFileIds.length > 0"
+      v-show="activeFileId"
       class="editor"
       :value="computedEditorValue"
       :box-shadow="false"
@@ -25,7 +25,7 @@
 <script>
 import tabList from "./tab-list";
 import { mapState, mapMutations } from "vuex";
-import { writeFile, getFilePath } from "@/common/utils";
+import { writeFile, getFilePath, readFile } from "@/common/utils";
 
 const { ipcRenderer } = window.require("electron");
 
@@ -62,28 +62,26 @@ export default {
         aligncenter: true, // 居中
         alignright: true, // 右对齐
         subfield: true, // 单双栏模式
-        preview: true // 预览
+        preview: true, // 预览
       },
-      savingAll: false
+      savingAll: false,
     };
   },
   mounted() {
     ipcRenderer.on("save", this.saveCurrentFile);
-    ipcRenderer.on("save-all", this.saveAllFiles);
   },
   beforeDestroy() {
     ipcRenderer.removeListener("save", this.saveCurrentFile);
-    ipcRenderer.removeListener("save-all", this.saveAllFiles);
   },
   components: {
-    tabList
+    tabList,
   },
   computed: {
     ...mapState("file", [
       "files",
       "activeFileId",
       "openedFileIds",
-      "unsavedFiles"
+      "unsavedFiles",
     ]),
     ...mapState("setting", ["locale", "font"]),
     computedEditorValue() {
@@ -97,12 +95,12 @@ export default {
     computedFontStyle() {
       const { font } = this;
       return `font-family: ${font}`;
-    }
+    },
   },
   methods: {
     ...mapMutations({
       set_files: "file/set_files",
-      set_unsaved_files: "file/set_unsaved_files"
+      set_unsaved_files: "file/set_unsaved_files",
     }),
     onContentChange(val, render) {
       const { unsavedFiles, activeFileId, files, openedFileIds } = this;
@@ -124,55 +122,44 @@ export default {
       const activeFile = files[activeFileId];
       const filePath = getFilePath(activeFile.path, activeFile.title);
       const content = unsavedFiles[activeFileId];
-      writeFile(filePath, content)
-        .then(() => {
-          const modifiedFile = {
-            ...activeFile,
-            content,
-            updatedAt: new Date().getTime()
-          };
-          this.$set(this.files, activeFile.id, modifiedFile);
-          this.$delete(unsavedFiles, activeFile.id);
-        })
-        .catch(err => {
-          console.log(err);
-          return;
+      try {
+        writeFile(filePath, content);
+        const modifiedFile = {
+          ...activeFile,
+          content,
+          updatedAt: new Date().getTime(),
+        };
+        this.$set(this.files, activeFile.id, modifiedFile);
+        this.$delete(unsavedFiles, activeFile.id);
+      } catch (err) {
+        this.$alert.show({
+          type: "danger",
+          message: this.$t("SAVE_FILE_ERROR", { name: activeFile.title }),
         });
+        return;
+      }
     },
-    async saveAllFiles() {
-      const { unsavedFiles, files, savingAll } = this;
-      if (savingAll) return;
-      this.savingAll = true;
-      const unsavedFilesCopy = Object.assign(unsavedFiles, {});
-      const filesCopy = Object.assign(files, {});
-      const unsavedFileIds = Object.keys(unsavedFiles);
-      for (let id of unsavedFileIds) {
-        const unsavedOriginalFile = filesCopy[id];
-        const filePath = getFilePath(
-          unsavedOriginalFile.path,
-          unsavedOriginalFile.title
-        );
-        const content = unsavedFilesCopy[id];
-        if (unsavedFilesCopy[id] === undefined) continue;
+  },
+  watch: {
+    activeFileId(newVal, oldVal) {
+      const { files } = this;
+      const activeFile = files[newVal];
+      if (activeFile && activeFive.content === undefined) {
         try {
-          await writeFile(filePath, content);
-          const modifiedFile = {
-            ...unsavedOriginalFile,
-            content,
-            updatedAt: new Date().getTime
-          };
-          filesCopy[id] = modifiedFile;
-          delete unsavedFilesCopy[id];
+          const filepath = getFilePath(activeFile.path, activeFile.title);
+          const content = readFile(filepath);
+          const modifiedFile = { ...activeFile, content };
+          this.$set(this.files, activeFile.id, modifiedFile);
         } catch (err) {
-          console.log(err);
-          continue;
+          this.$alert.show({
+            type: "danger",
+            message: this.$t("READ_FILE_ERROR", { name: activeFile.title }),
+            interval: 5000,
+          });
         }
       }
-      this.set_files(filesCopy);
-      this.set_unsaved_files(unsavedFilesCopy);
-      this.savingAll = false;
-    }
-  }
+    },
+  },
 };
 </script>
 

@@ -14,7 +14,7 @@ export default {
   data() {
     return {
       visible: false,
-      dismissTimer: null
+      dismissTimer: null,
     };
   },
   computed: {
@@ -25,53 +25,64 @@ export default {
       return `${alertBase} ${alertType}`;
     },
     computedFontStyle() {
-      const { fontFamily, fontColor } = this;
-      return `font-family: ${fontFamily}; color: ${fontColor}`;
+      const { fontFamily, fontColor, computedColor } = this;
+      const color = fontColor || computedColor;
+      return `font-family: ${fontFamily}; color: ${color}`;
+    },
+    computedColor() {
+      const { type } = this;
+      return type === "warning" ? "grey" : "whitesmoke";
     },
     computedIconStyle() {
-      const { fontColor } = this;
-      return `color: ${fontColor}`;
-    }
+      const { fontColor, computedColor } = this;
+      const color = fontColor || computedColor;
+      return `color: ${color}`;
+    },
   },
   props: {
     type: {
       type: String,
-      default: "secondary"
+      default: "secondary",
     },
     fontFamily: {
       type: String,
-      default: "NotoSans"
+      default: "Ai-deep",
     },
     fontColor: {
       type: String,
-      default: "black"
+      default: "",
     },
     message: {
       type: String,
-      default: "message"
+      default: "message",
     },
     interval: {
       type: Number,
-      default: 3000
-    }
+      default: 3000,
+    },
   },
   methods: {
     show() {
-      this.visible = true;
+      if (!this.visible) {
+        this.visible = true;
+      } else {
+        clearTimeout(this.dismissTimer);
+        this.dismissTimer = null;
+      }
       this.dismissTimer = setTimeout(() => {
         // automatically close alert
         if (this) this.resetTimer();
       }, this.interval);
     },
     dismiss() {
-      this.visible = false;
+      if (this.visible) this.visible = false;
     },
     resetTimer() {
       if (this.visible) this.visible = false;
       if (this.dismissTimer) clearTimeout(this.dismissTimer);
       this.dismissTimer = null;
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -81,8 +92,8 @@ export default {
   position: absolute;
   top: 5px;
   left: 50%;
-  transform: translateX(-50%);
   z-index: 10050 !important;
+  transform: translateX(-50%);
   height: 5vh;
   min-height: 40px;
   max-height: #{"min(5vh, 50px)"};
@@ -125,12 +136,14 @@ export default {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+  top: 0;
 }
 
 // after enter and before leave
 .fade-leave,
 .fade-enter-to {
   opacity: 1;
+  top: 5px;
 }
 .fade-enter-active,
 .fade-leave-active {

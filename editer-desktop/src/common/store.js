@@ -3,37 +3,61 @@ const KEYS = {
   FILES: "files",
   DEFUALT_PATH: "default-path",
   LOCALE: "language",
-  FONT: "font"
+  FONT: "font",
+  OPENED_FILES: "opened-files",
+  ACTIVE_FILE: "active-file",
 };
 const store = new Store({ name: "store", encryptionKey: "molinz9183" });
 
 const saveFilesToStore = (files = []) => {
-  //console.log("save files");
-  let filesObj = files.reduce((result, file) => {
-    const { id, path, title, createdAt, updatedAt } = file;
-    result[id] = {
-      id,
-      path,
-      title,
-      createdAt,
-      updatedAt
-    };
-    return result;
-  }, {});
-  store.set(KEYS.FILES, filesObj);
+  if (files.length === 0) {
+    store.delete(KEYS.FILES);
+  } else {
+    let filesObj = files.reduce((result, file) => {
+      const { id, path, title, createdAt, updatedAt } = file;
+      result[id] = {
+        id,
+        path,
+        title,
+        createdAt,
+        updatedAt,
+      };
+      return result;
+    }, {});
+    store.set(KEYS.FILES, filesObj);
+  }
 };
 
-const saveDefaultPathToStore = path => {
-  //console.log("save path");
-  store.set(KEYS.DEFUALT_PATH, path);
+const saveOpenedFilesToStore = (openedFiles = []) => {
+  if (openedFiles.length === 0) store.delete(KEYS.OPENED_FILES);
+  else store.set(KEYS.OPENED_FILES, openedFiles);
+};
+
+const getOpenedFilesFromStore = () => {
+  return store.get(KEYS.OPENED_FILES);
+};
+
+const saveActiveFileToStore = (activeFile) => {
+  if (!activeFile) store.delete(KEYS.ACTIVE_FILE);
+  else store.set(KEYS.ACTIVE_FILE, activeFile);
+};
+
+const getActiveFileFromStore = () => {
+  store.get(KEYS.ACTIVE_FILE);
+};
+
+const saveDefaultPathToStore = (path) => {
+  if (!path) store.delete(KEYS.DEFUALT_PATH);
+  else store.set(KEYS.DEFUALT_PATH, path);
 };
 
 const getFontFromStore = () => {
   return store.get(KEYS.FONT);
 };
 
-const saveFontToStore = font => {
-  store.set(KEYS.FONT, font);
+const saveFontToStore = (font) => {
+  if (!font) store.delete(KEYS.FONT);
+  else store.set(KEYS.FONT, font);
 };
 
 const getFilesFromStore = () => {
@@ -44,9 +68,9 @@ const getDefaultPathFromStore = () => {
   return store.get(KEYS.DEFUALT_PATH);
 };
 
-const saveLocaleToStore = locale => {
-  //console.log("save locale");
-  store.set(KEYS.LOCALE, locale);
+const saveLocaleToStore = (locale) => {
+  if (!locale) store.delete(KEYS.LOCALE);
+  else store.set(KEYS.LOCALE, locale);
 };
 
 const getLocaleFromStore = () => {
@@ -61,5 +85,9 @@ export {
   saveLocaleToStore,
   getLocaleFromStore,
   getFontFromStore,
-  saveFontToStore
+  saveFontToStore,
+  saveOpenedFilesToStore,
+  getOpenedFilesFromStore,
+  saveActiveFileToStore,
+  getActiveFileFromStore,
 };

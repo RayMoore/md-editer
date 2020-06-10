@@ -21,10 +21,7 @@
       "buildResources": "assets"
     },
     "win": {
-      "target": [
-        "nsis",
-        "msi"
-      ],
+      "target": ["nsis"],
       "icon": "assets/icon.ico",
       "artifactName": "${productName}-${version}-${arch}.${ext}",
       "publisherName": "${author}"

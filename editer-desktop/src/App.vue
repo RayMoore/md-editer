@@ -5,6 +5,7 @@
     @click.stop="resetComponent"
     :style="computedFontStyle"
   >
+    <vloading :active="loading" color="black" :is-full-screen="true" />
     <index />
   </div>
 </template>
@@ -19,42 +20,145 @@ import {
   saveDefaultPathToStore,
   saveLocaleToStore,
   saveFilesToStore,
-  saveFontToStore
+  saveFontToStore,
+  saveOpenedFilesToStore,
+  getOpenedFilesFromStore,
+  saveActiveFileToStore,
+  getActiveFileFromStore,
 } from "@/common/store";
 import { objToArr } from "@/common/flatten";
-import { mapActions, mapState } from "vuex";
+import { getFilePath, writeFile } from "@/common/utils";
+import { mapActions, mapState, mapMutations } from "vuex";
 const { remote, ipcRenderer } = window.require("electron");
+const { dialog } = remote;
 export default {
   name: "App",
   components: { index },
+  data() {
+    return {
+      savingAll: false,
+      loading: false,
+    };
+  },
   computed: {
     ...mapState("setting", ["locale", "path", "font"]),
-    ...mapState("file", ["files"]),
+    ...mapState("file", [
+      "files",
+      "unsavedFiles",
+      "openedFileIds",
+      "activeFileId",
+    ]),
     computedTitle() {
       return this.$t("APP");
     },
     computedFontStyle() {
       const { font } = this;
       return `font-family: ${font}`;
-    }
+    },
   },
   mounted() {
+    this.loading = true;
     const files = getFilesFromStore() || {};
+    const openedFileIds = getOpenedFilesFromStore() || [];
+    const activeFileId = getActiveFileFromStore() || "";
     const locale = getLocaleFromStore() || remote.app.getLocale();
     const path = getDefaultPathFromStore() || remote.app.getPath("documents");
     const font = getFontFromStore() || "Ai-Deep";
-    this.init_file_store({ files });
+    console.log(openedFileIds);
+    console.log(activeFileId);
+    this.init_file_store({ files, openedFileIds, activeFileId });
     this.init_setting_store({ path, locale, font });
     this.$i18n.locale = locale;
+    ipcRenderer.on("app-will-close", this.onAppWillClose);
+    ipcRenderer.on("save-all", this.saveAllFiles);
+    this.loading = false;
+  },
+  beforeDestroy() {
+    ipcRenderer.removeListener("app-will-close", this.onAppWillClose);
+    ipcRenderer.removeListener("save-all", this.saveAllFiles);
   },
   methods: {
     ...mapActions({
       init_file_store: "file/init_file_store",
-      init_setting_store: "setting/init_setting_store"
+      init_setting_store: "setting/init_setting_store",
+    }),
+    ...mapMutations({
+      set_files: "file/set_files",
+      set_unsaved_files: "file/set_unsaved_files",
     }),
     resetComponent() {
       this.$eventbus.$emit("reset-component");
-    }
+    },
+    onAppWillClose() {
+      const { unsavedFiles } = this;
+      if (!unsavedFiles || Object.keys(unsavedFiles).length === 0) {
+        saveFilesToStore(objToArr(this.files));
+        saveOpenedFilesToStore(this.openedFileIds);
+        saveActiveFileToStore(this.activeFileId);
+        return ipcRenderer.send("close-app");
+      } else {
+        // app has unsaved files
+        // ask the user if willing to save the changes or not
+        const clickedIndex = dialog.showMessageBoxSync(
+          remote.getCurrentWindow(),
+          {
+            type: "warning",
+            title: this.$t("HAS_UNSAVED_TITLE"),
+            message: this.$t("HAS_UNSAVED_MESSAGE"),
+            // 1.confirm 2.cancel
+            buttons: [this.$t("CANCEL"), this.$t("ABORT_CHANGES")],
+          }
+        );
+        if (clickedIndex === 1) {
+          // abort change and quit
+          saveFilesToStore(objToArr(this.files));
+          saveOpenedFilesToStore(this.openedFileIds);
+          saveActiveFileToStore(this.activeFileId);
+          return ipcRenderer.send("close-app");
+        }
+        // not quit
+        return;
+      }
+    },
+    saveAllFiles() {
+      const { unsavedFiles, files, savingAll } = this;
+      if (savingAll) return;
+      this.savingAll = true;
+      const unsavedFilesCopy = Object.assign(unsavedFiles, {});
+      const filesCopy = Object.assign(files, {});
+      const unsavedFileIds = Object.keys(unsavedFiles);
+      for (let id of unsavedFileIds) {
+        const unsavedOriginalFile = filesCopy[id];
+        const filePath = getFilePath(
+          unsavedOriginalFile.path,
+          unsavedOriginalFile.title
+        );
+        const content = unsavedFilesCopy[id];
+        if (unsavedFilesCopy[id] === undefined) continue;
+        try {
+          writeFile(filePath, content);
+          const modifiedFile = {
+            ...unsavedOriginalFile,
+            content,
+            updatedAt: new Date().getTime,
+          };
+          filesCopy[id] = modifiedFile;
+          delete unsavedFilesCopy[id];
+        } catch (err) {
+          this.$alert.show({
+            type: "warning",
+            message: this.$t("SAVE_FILE_ERROR", {
+              name: unsavedOriginalFile.title,
+            }),
+            interval: 3000,
+          });
+          continue;
+        }
+      }
+      this.set_files(filesCopy);
+      this.set_unsaved_files(unsavedFilesCopy);
+      this.savingAll = false;
+    },
   },
   watch: {
     locale(newVal, oldVal) {
@@ -70,8 +174,8 @@ export default {
     },
     font(newVal, oldVal) {
       saveFontToStore(newVal);
-    }
-  }
+    },
+  },
 };
 </script>
 

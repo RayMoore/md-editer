@@ -1,5 +1,4 @@
 const { app } = require("electron");
-const isDev = require("electron-is-dev");
 
 const locale = {
   "en-US": {
@@ -42,7 +41,7 @@ const locale = {
   }
 };
 
-const buildMenu = newLocale => {
+const buildMenu = (newLocale, isDev=false)=> {
   const lang = locale[newLocale] ? newLocale : "en-US";
   let template = [
     {
@@ -109,7 +108,7 @@ const buildMenu = newLocale => {
           accelerator: "CmdOrCtrl+M"
         },
         {
-          label: locale[lang]["FULLSCREEN"],
+          label: locale[lang]["FULL_SCREEN"],
           role: "togglefullscreen",
           accelerator: "CmdOrCtrl+F12"
         }

@@ -25,7 +25,7 @@
       </transition>
     </a>
     <a class="tab-pill active-btn" @click.stop="createFile">
-      <icon name="add" style="color: grey" />
+      <icon name="add" style="color: grey;" />
     </a>
   </div>
 </template>
@@ -37,8 +37,8 @@ import fileTab from "./file-tab";
 import fileStackTab from "./file-stack-tab";
 import vueScroll from "vuescroll";
 import { SCROLL_OPS } from "@/common/config";
-import { getSeparator } from "@/common/utils";
 import { EXT, EXT_NAME } from "@/common/config";
+import { splitPath } from "@/common/utils";
 
 const { ipcRenderer, remote } = window.require("electron");
 const { dialog } = remote;
@@ -47,13 +47,13 @@ export default {
   components: {
     fileTab,
     fileStackTab,
-    vueScroll
+    vueScroll,
   },
   data() {
     return {
       listWidth: 0,
       showStackFiles: false,
-      ops: SCROLL_OPS
+      ops: SCROLL_OPS,
     };
   },
   computed: {
@@ -61,7 +61,7 @@ export default {
     ...mapState("setting", ["path"]),
     computedTotalOpenedFiles() {
       const { files, openedFileIds } = this;
-      return openedFileIds.map(id => {
+      return openedFileIds.map((id) => {
         return files[id];
       });
     },
@@ -92,16 +92,20 @@ export default {
     computedMaxLenNonStack() {
       const { listWidth } = this;
       return Math.floor(listWidth / 80) - 1;
-    }
+    },
   },
   mounted() {
     window.onresize = () => {
       return (() => {
-        this.listWidth = this.$refs["list"].offsetWidth;
+        if (this.$refs["list"]) {
+          this.listWidth = this.$refs["list"].offsetWidth;
+        }
       })();
     };
     this.$nextTick(() => {
-      this.listWidth = this.$refs["list"].offsetWidth;
+      if (this.$refs["list"]) {
+        this.listWidth = this.$refs["list"].offsetWidth;
+      }
     });
     this.$eventbus.$on("reset-component", () => {
       this.showStackFiles = false;
@@ -115,14 +119,14 @@ export default {
   },
   methods: {
     ...mapMutations({
-      set_rename_file_id: "file/set_rename_file_id"
+      set_rename_file_id: "file/set_rename_file_id",
     }),
     createFile() {
       const id = v1();
       const newFile = {
         id,
         title: "",
-        newCreated: true
+        newCreated: true,
       };
       this.$set(this.files, id, newFile);
       this.set_rename_file_id(id);
@@ -140,23 +144,20 @@ export default {
           title: this.$t("IMPORT_FILE_TITLE"),
           defaultPath: this.path,
           filters: [{ name: "markdown", extensions: [EXT_NAME] }],
-          properties: ["openFile", "multiSelections"]
+          properties: ["openFile", "multiSelections"],
         }
       );
       if (filesImported) {
-        const separator = getSeparator();
-        filesImported.map(pathStr => {
+        filesImported.map((pathStr) => {
           const id = v1();
-          const fileName = pathStr.split(separator).pop();
-          const title = fileName.split(EXT).shift();
+          const { path, title } = splitPath(pathStr);
           const createdAt = new Date().getTime();
-          const path = pathStr.split(separator + title).shift();
           const newFile = { id, title, path, createdAt };
           this.$set(this.files, id, newFile);
         });
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
