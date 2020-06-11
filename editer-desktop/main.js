@@ -1,20 +1,25 @@
 const { app, BrowserWindow, Menu, ipcMain } = require("electron");
-const path = require('path');
 const menuBuilder = require("./menu-builder");
 const title = "Cokee";
+let windowOptions = {
+  width: 1440,
+  height: 768,
+  minWidth: 1024,
+  minHeight: 600,
+  title,
+  frame: false,
+  center: true,
+  webPreferences: {
+    nodeIntegration: true,
+    enableRemoteModule: true,
+  },
+};
 let mainWindow = null;
 const createWindow = () => {
-  mainWindow = new BrowserWindow({
-    width: 1440,
-    height: 768,
-    minWidth: 1024,
-    minHeight: 600,
-    title,
-    webPreferences: {
-      nodeIntegration: true,
-      enableRemoteModule: true
-    }
-  });
+  if (process.platform === "darwin") {
+    windowOptions["titleBarStyle"] = "hidden";
+  }
+  mainWindow = new BrowserWindow(windowOptions);
   const urlLocation = "http://localhost:8080";
   mainWindow.loadURL(urlLocation);
   // default menu
@@ -26,20 +31,17 @@ const createWindow = () => {
     const newMenu = Menu.buildFromTemplate(menuBuilder(args, true));
     Menu.setApplicationMenu(newMenu);
   });
-  ipcMain.on('close-app', ()=>{
+  ipcMain.on("close-app", () => {
     ipcMain.removeAllListeners();
     mainWindow.destroy();
-  })
-  if(process.platform === 'win32'){
-    mainWindow.setIcon(path.win32.join(__dirname, "static", "icon.ico"));
-  }
-  mainWindow.on('ready-to-show', function(){
+  });
+  mainWindow.on("ready-to-show", function () {
     mainWindow.show();
   });
-  mainWindow.on('close', function(event){
+  mainWindow.on("close", function (event) {
     event.preventDefault();
-    mainWindow.webContents.send('app-will-close');
-  })
+    mainWindow.webContents.send("app-will-close");
+  });
   mainWindow.on("closed", () => {
     mainWindow = null;
   });

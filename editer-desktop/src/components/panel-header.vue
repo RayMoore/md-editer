@@ -24,7 +24,7 @@
       <icon
         v-if="showInput"
         name="close"
-        style="right: 5px; cursor: pointer"
+        style="right: 5px; cursor: pointer;"
         class="icon"
         @click.native="hideSearchInput"
       />
@@ -41,7 +41,7 @@ export default {
     return {
       timer: null,
       showInput: false,
-      value: ""
+      value: "",
     };
   },
   computed: {
@@ -50,7 +50,7 @@ export default {
       const { showInput } = this;
       if (showInput) return "right: calc(100% - 20px);transition: right 0.5s;";
       return "right: 0;transition: right 0.5s;";
-    }
+    },
   },
   mounted() {
     ipcRenderer.on("search", this.searchListener);
@@ -85,7 +85,7 @@ export default {
           clearTimeout(this.timer);
           this.timer = null;
           let newVal = val.trim(" ");
-          const searchedFiles = objToArr(this.files).filter(file =>
+          const searchedFiles = objToArr(this.files).filter((file) =>
             file.title.includes(newVal)
           );
           this.$emit("searched-files", searchedFiles);
@@ -99,8 +99,8 @@ export default {
     },
     searchListener() {
       return this.showSearchInput();
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -163,7 +163,6 @@ export default {
   opacity: 0;
   visibility: hidden;
   width: 0%;
-  height: 0%;
 }
 
 // after enter and before leave
@@ -172,7 +171,6 @@ export default {
   opacity: 1;
   visibility: visible;
   width: 100%;
-  height: 100%;
 }
 .title-fade-enter-active {
   transition: all 0.35s;

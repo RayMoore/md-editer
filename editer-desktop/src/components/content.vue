@@ -1,6 +1,5 @@
 <template>
   <div class="content-wrapper">
-    <div class="border-top"></div>
     <md-board v-show="isVisible('md-board')" />
     <setting-board v-show="isVisible('setting-board')" />
   </div>
@@ -13,17 +12,17 @@ import { mapState } from "vuex";
 export default {
   components: {
     mdBoard,
-    settingBoard
+    settingBoard,
   },
   computed: {
     ...mapState("router", ["route"]),
     isVisible() {
-      return function(tag) {
+      return function (tag) {
         const { route } = this;
         return tag === route;
       };
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -36,13 +35,5 @@ export default {
   justify-content: center;
   align-items: center;
   position: relative;
-}
-.border-top{
-  position:absolute;
-  top:0;
-  left: 0;
-  width: 100%;
-  height: 0.5px;
-  background-color: #303030;
 }
 </style>

@@ -164,6 +164,7 @@ export default {
             return;
           }
         }
+        this.resetItem();
       }
     });
     this.menu = this.buildContextMenu();
@@ -266,7 +267,7 @@ export default {
     },
     removeThisFile() {
       const { file, openedFileIds } = this;
-      if(openedFileIds.includes(file.id))this.remove_opened_file_id(file.id)
+      if (openedFileIds.includes(file.id)) this.remove_opened_file_id(file.id);
       this.$delete(this.files, file.id);
     },
     showThisFile() {
@@ -315,6 +316,7 @@ export default {
         // Escape
         this.set_rename_file_id("");
         if (file.newCreated) this.$delete(files, file.id);
+        this.resetItem();
         return;
       }
       if (e.keyCode === 13) {
@@ -370,8 +372,17 @@ export default {
             }
           }
         }
-        return;
+        this.resetItem();
       }
+    },
+    resetItem() {
+      if (this.newTitle) this.newTitle = "";
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = null;
+      }
+      if (titleInvalid) this.titleInvalid = false;
+      if (!titleAvailable) titleAvailable = true;
     },
   },
   watch: {
@@ -382,6 +393,10 @@ export default {
         return this.$nextTick(() => {
           this.$refs["input"].focus();
         });
+      } else {
+        if (file.newCreated) {
+          this.$delete(this.files, file.id);
+        }
       }
     },
     locale(newVal, oldVal) {

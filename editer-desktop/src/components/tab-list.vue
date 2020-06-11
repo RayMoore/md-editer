@@ -123,6 +123,10 @@ export default {
       set_rename_file_id: "file/set_rename_file_id",
     }),
     createFile() {
+      const { files } = this;
+      const filesLastId = Object.keys(files).pop();
+      const lastFile = files[filesLastId];
+      if (lastFile.newCreated) return;
       const id = v1();
       const newFile = {
         id,

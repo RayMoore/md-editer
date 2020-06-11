@@ -1,5 +1,3 @@
-const { app } = require("electron");
-
 const locale = {
   "en-US": {
     FILE: "File",
@@ -41,7 +39,7 @@ const locale = {
   },
 };
 
-const buildMenu = (newLocale, isDev = false) => {
+const buildMenu = (newLocale, browserWindow) => {
   const lang = locale[newLocale] ? newLocale : "en-US";
   let template = [
     {
@@ -49,36 +47,36 @@ const buildMenu = (newLocale, isDev = false) => {
       submenu: [
         {
           label: locale[lang]["CREATE"],
-          accelerator: "CmdOrCtrl+N",
-          click: (menuItem, browserWindow, event) => {
+          accelerator: "Ctrl+N",
+          click: () => {
             browserWindow.webContents.send("create");
           },
         },
         {
           label: locale[lang]["SAVE"],
-          accelerator: "CmdOrCtrl+S",
-          click: (menuItem, browserWindow, event) => {
+          accelerator: "Ctrl+S",
+          click: () => {
             browserWindow.webContents.send("save");
           },
         },
         {
           label: locale[lang]["SAVE_ALL"],
-          accelerator: "CmdOrCtrl+Alt+S",
-          click: (menuItem, browserWindow, event) => {
+          accelerator: "Ctrl+Alt+S",
+          click: () => {
             browserWindow.webContents.send("save-all");
           },
         },
         {
           label: locale[lang]["SEARCH"],
-          accelerator: "CmdOrCtrl+F",
-          click: (menuItem, browserWindow, event) => {
+          accelerator: "Ctrl+F",
+          click: () => {
             browserWindow.webContents.send("search");
           },
         },
         {
           label: locale[lang]["IMPORT"],
-          accelerator: "CmdOrCtrl+I",
-          click: (menuItem, browserWindow, event) => {
+          accelerator: "Ctrl+I",
+          click: () => {
             browserWindow.webContents.send("import");
           },
         },
@@ -89,62 +87,25 @@ const buildMenu = (newLocale, isDev = false) => {
       submenu: [
         {
           label: locale[lang]["MINIMIZE"],
-          role: "minimize",
-          accelerator: "CmdOrCtrl+M",
+          accelerator: "Ctrl+M",
+          click: () => {
+            if (browserWindow.isMinimized()) return browserWindow.restore();
+            return browserWindow.minimize();
+          },
         },
         {
           label: locale[lang]["FULL_SCREEN"],
-          role: "togglefullscreen",
-          accelerator: "CmdOrCtrl+F12",
+          accelerator: "Ctrl+F12",
+          click: () => {
+            if (browserWindow.isFullScreen())
+              return browserWindow.setFullScreen(false);
+            return browserWindow.setFullScreen(true);
+          },
         },
       ],
     },
   ];
-  if (process.platform === "darwin") {
-    const name = app.getName();
-    template.unshift({
-      label: name,
-      submenu: [
-        {
-          role: "about",
-        },
-        {
-          type: "separator",
-        },
-        {
-          role: "services",
-        },
-        {
-          type: "separator",
-        },
-        {
-          role: "quit",
-          accelerator: "CmdOrCtrl+Q",
-        },
-        {
-          role: "close",
-        },
-      ],
-    });
-  }
-  if (isDev) {
-    template.push({
-      label: locale[lang]["WINDOW"],
-      submenu: [
-        {
-          label: locale[lang]["DEVTOOL"],
-          role: "toggledevtools",
-          accelerator: "F12",
-        },
-        {
-          label: locale[lang]["RELOAD"],
-          role: "reload",
-          accelerator: "CmdOrCtrl+R",
-        },
-      ],
-    });
-  }
   return template;
 };
 
-module.exports = buildMenu;
+export default buildMenu;
