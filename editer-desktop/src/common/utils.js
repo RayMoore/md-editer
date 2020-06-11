@@ -25,7 +25,6 @@ const checkFileAvailabel = (filepath, filename) => {
 };
 
 const readFile = (filepath) => {
-  // return fsPromises.readFile(filepath);
   return fs.readFileSync(filepath, { encoding: "utf8" });
 };
 

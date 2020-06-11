@@ -1,10 +1,7 @@
 <template>
   <div class="md-panel-wrapper">
     <tab-list />
-    <div
-      v-show="openedFileIds.length === 0"
-      class="no-opened-file display-only"
-    >
+    <div v-show="!activeFileId" class="no-opened-file display-only">
       <span>{{ $t("SELECT_OR_CREATE_NEW_DOC") }}</span>
     </div>
     <mavon-editor
@@ -120,7 +117,7 @@ export default {
       const { files, activeFileId, unsavedFiles } = this;
       if (!activeFileId || unsavedFiles[activeFileId] === undefined) return;
       const activeFile = files[activeFileId];
-      const filePath = getFilePath(activeFile.path, activeFile.title);
+      const filePath = activeFile.fullpath;
       const content = unsavedFiles[activeFileId];
       try {
         writeFile(filePath, content);
@@ -130,7 +127,7 @@ export default {
           updatedAt: new Date().getTime(),
         };
         this.$set(this.files, activeFile.id, modifiedFile);
-        this.$delete(unsavedFiles, activeFile.id);
+        this.$delete(this.unsavedFiles, activeFile.id);
       } catch (err) {
         this.$alert.show({
           type: "danger",
@@ -144,9 +141,9 @@ export default {
     activeFileId(newVal, oldVal) {
       const { files } = this;
       const activeFile = files[newVal];
-      if (activeFile && activeFive.content === undefined) {
+      if (activeFile && activeFile.content === undefined) {
         try {
-          const filepath = getFilePath(activeFile.path, activeFile.title);
+          const filepath = activeFile.fullpath;
           const content = readFile(filepath);
           const modifiedFile = { ...activeFile, content };
           this.$set(this.files, activeFile.id, modifiedFile);

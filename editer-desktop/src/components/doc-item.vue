@@ -135,6 +135,7 @@ export default {
               ...createdFile,
               path: filePath,
               title,
+              fullpath: writePath,
               createdAt: new Date().getTime(),
             };
             this.$set(this.files, file.id, modifiedFile);
@@ -150,6 +151,7 @@ export default {
               ...file,
               path: filePath,
               title,
+              fullpath: writeFile,
               createdAt: new Date().getTime(),
             };
             this.$set(this.files, file.id, modifiedFile);
@@ -217,12 +219,12 @@ export default {
       if (file.content === undefined) {
         // this file is new added to the opened file list
         try {
-          const filePath = getFilePath(file.path, file.title);
+          const filePath = file.fullpath;
           const content = readFile(filePath);
-          console.log(content);
           const modifiedFile = { ...file, content };
           this.$set(this.files, file.id, modifiedFile);
         } catch (err) {
+          console.log(err);
           this.$alert.show({
             type: "danger",
             message: this.$t("READ_FILE_ERROR", { name: file.title }),
@@ -263,7 +265,8 @@ export default {
       }
     },
     removeThisFile() {
-      const { file } = this;
+      const { file, openedFileIds } = this;
+      if(openedFileIds.includes(file.id))this.remove_opened_file_id(file.id)
       this.$delete(this.files, file.id);
     },
     showThisFile() {
@@ -329,6 +332,7 @@ export default {
               ...createdFile,
               path: filePath,
               title,
+              fullpath: writePath,
               createdAt: new Date().getTime(),
             };
             this.$set(this.files, file.id, modifiedFile);
@@ -351,6 +355,7 @@ export default {
                 ...file,
                 path: filePath,
                 title,
+                fullpath: writePath,
                 createdAt: new Date().getTime(),
               };
               this.$set(this.files, file.id, modifiedFile);

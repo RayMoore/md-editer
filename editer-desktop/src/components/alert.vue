@@ -31,7 +31,18 @@ export default {
     },
     computedColor() {
       const { type } = this;
-      return type === "warning" ? "grey" : "whitesmoke";
+      switch(type){
+        case 'warning':
+          return 'darkred';
+        case "danger":
+          return 'whitesmoke';
+        case 'success':
+          return "whitesmoke";
+        case 'info':
+          return 'dodgerblue';
+        default:
+          return "gainsboro"
+      }
     },
     computedIconStyle() {
       const { fontColor, computedColor } = this;
@@ -42,7 +53,7 @@ export default {
   props: {
     type: {
       type: String,
-      default: "secondary",
+      default: "warning",
     },
     fontFamily: {
       type: String,
@@ -97,8 +108,8 @@ export default {
   height: 5vh;
   min-height: 40px;
   max-height: #{"min(5vh, 50px)"};
-  min-width: 200px;
-  max-width: 600px;
+  min-width: 300px;
+  max-width: 700px;
   display: flex;
   flex-direction: row;
   justify-content: center;

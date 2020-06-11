@@ -5,6 +5,18 @@
   --main-color-warning: #f0ad4e;
   --main-color-danger: #d9534f;
   --main-color-white: #f7f7f7;
+  --main-color-blue-rgb: 2, 117, 216;
+  --main-color-success-rgb: 92, 184, 92;
+  --main-color-info-rgb: 91, 192, 222;
+  --main-color-warning-rgb: 240, 173, 78;
+  --main-color-danger-rgb: 217, 83, 79;
+  --main-color-white-rgb: 247, 247, 247;
+  --main-color-blue-light: #0275d8cc;
+  --main-color-success-light: #5cb85ccc;
+  --main-color-info-light: #5bc0decc;
+  --main-color-warning-light: #f0ad4ecc;
+  --main-color-danger-light: #d9534fcc;
+  --main-color-white-light: #f7f7f7cc;
 }
 
 .display-only {
@@ -72,9 +84,32 @@
   background-color: var(--main-color-danger);
 }
 
+.success {
+  background-color: var(--main-color-success);
+}
+
+.info {
+  background-color: var(--main-color-info);
+}
+
+.danger-light {
+  background-color: var(--main-color-danger-light);
+}
+
+.warning-light {
+  background-color: var(--main-color-warning-light);
+}
+
+.success-light {
+  background-color: var(--main-color-success-light);
+}
+
+.info-light {
+  background-color: var(--main-color-info-light);
+}
+
 .shadow {
   box-shadow: -5px 2px 5px gainsboro;
-  ;
 }
 
 @font-face {

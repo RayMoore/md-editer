@@ -14,11 +14,12 @@ const saveFilesToStore = (files = []) => {
     store.delete(KEYS.FILES);
   } else {
     let filesObj = files.reduce((result, file) => {
-      const { id, path, title, createdAt, updatedAt } = file;
+      const { id, path, title, createdAt, updatedAt, fullpath } = file;
       result[id] = {
         id,
         path,
         title,
+        fullpath,
         createdAt,
         updatedAt,
       };
@@ -43,7 +44,7 @@ const saveActiveFileToStore = (activeFile) => {
 };
 
 const getActiveFileFromStore = () => {
-  store.get(KEYS.ACTIVE_FILE);
+  return store.get(KEYS.ACTIVE_FILE);
 };
 
 const saveDefaultPathToStore = (path) => {

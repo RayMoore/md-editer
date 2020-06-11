@@ -64,8 +64,6 @@ export default {
     const locale = getLocaleFromStore() || remote.app.getLocale();
     const path = getDefaultPathFromStore() || remote.app.getPath("documents");
     const font = getFontFromStore() || "Ai-Deep";
-    console.log(openedFileIds);
-    console.log(activeFileId);
     this.init_file_store({ files, openedFileIds, activeFileId });
     this.init_setting_store({ path, locale, font });
     this.$i18n.locale = locale;
@@ -93,8 +91,12 @@ export default {
       const { unsavedFiles } = this;
       if (!unsavedFiles || Object.keys(unsavedFiles).length === 0) {
         saveFilesToStore(objToArr(this.files));
-        saveOpenedFilesToStore(this.openedFileIds);
-        saveActiveFileToStore(this.activeFileId);
+        saveOpenedFilesToStore(
+          this.openedFileIds.filter((id) => this.files[id])
+        );
+        saveActiveFileToStore(
+          this.files[this.activeFileId] ? this.activeFileId : ""
+        );
         return ipcRenderer.send("close-app");
       } else {
         // app has unsaved files
@@ -112,8 +114,12 @@ export default {
         if (clickedIndex === 1) {
           // abort change and quit
           saveFilesToStore(objToArr(this.files));
-          saveOpenedFilesToStore(this.openedFileIds);
-          saveActiveFileToStore(this.activeFileId);
+          saveOpenedFilesToStore(
+            this.openedFileIds.filter((id) => this.files[id])
+          );
+          saveActiveFileToStore(
+            this.files[this.activeFileId] ? this.activeFileId : ""
+          );
           return ipcRenderer.send("close-app");
         }
         // not quit

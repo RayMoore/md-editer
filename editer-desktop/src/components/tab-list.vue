@@ -39,6 +39,7 @@ import vueScroll from "vuescroll";
 import { SCROLL_OPS } from "@/common/config";
 import { EXT, EXT_NAME } from "@/common/config";
 import { splitPath } from "@/common/utils";
+import { objToArr } from "@/common/flatten";
 
 const { ipcRenderer, remote } = window.require("electron");
 const { dialog } = remote;
@@ -148,12 +149,32 @@ export default {
         }
       );
       if (filesImported) {
-        filesImported.map((pathStr) => {
-          const id = v1();
-          const { path, title } = splitPath(pathStr);
-          const createdAt = new Date().getTime();
-          const newFile = { id, title, path, createdAt };
-          this.$set(this.files, id, newFile);
+        const filesArr = objToArr(this.files);
+        let importCount = 0;
+        filesImported.map((fullpath) => {
+          const newToWorkspace = !filesArr.find(
+            (file) => file.fullpath === fullpath
+          );
+          if (newToWorkspace) {
+            const id = v1();
+            const { path, title } = splitPath(fullpath);
+            const createdAt = new Date().getTime();
+            const newFile = { id, title, path, createdAt, fullpath };
+            this.$set(this.files, id, newFile);
+            importCount++;
+          }
+        });
+        if (importCount === 0) {
+          return this.$alert.show({
+            type: "warning",
+            message: this.$t("IMPORT_FILE_ERROR"),
+            interval: 3000,
+          });
+        }
+        this.$alert.show({
+          type: "success",
+          message: this.$t("IMPORT_FILE_SUCCESS", { number: importCount }),
+          interval: 3000,
         });
       }
     },
