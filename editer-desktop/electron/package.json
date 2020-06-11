@@ -5,6 +5,9 @@
   "license": "MIT",
   "version": "1.0.0",
   "main": "main.js",
+  "scripts": {
+    "win": "rm -rf dist && electron-builder --win"
+  },
   "description": "desktop markdown editor application",
   "build": {
     "electronVersion": "9.0.2",
