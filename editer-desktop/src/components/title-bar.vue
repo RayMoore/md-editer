@@ -1,7 +1,7 @@
 <template>
   <div class="title-bar-wrapper">
     <div class="title-icon">
-      <img src="/static/favicon.ico" />
+      <icon name="cokee" class="cokee" />
     </div>
     <div class="title-menu-wrapper">
       <div
@@ -136,7 +136,7 @@ export default {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  img {
+  .cokee {
     width: 15px;
     height: 15px;
   }
