@@ -7,6 +7,7 @@
   >
     <vloading :active="loading" color="black" :is-full-screen="true" />
     <index />
+    <updater />
   </div>
 </template>
 
@@ -27,13 +28,13 @@ import {
   getActiveFileFromStore,
 } from "@/common/store";
 import { objToArr } from "@/common/flatten";
+import updater from "@/components/updater";
 import { getFilePath, writeFile } from "@/common/utils";
 import { mapActions, mapState, mapMutations } from "vuex";
-const { remote, ipcRenderer } = window.require("electron");
-const { dialog } = remote;
+const { remote, ipcRenderer, shell } = window.require("electron");
 export default {
   name: "App",
-  components: { index },
+  components: { index, updater },
   data() {
     return {
       savingAll: false,
@@ -63,17 +64,21 @@ export default {
     const activeFileId = getActiveFileFromStore() || "";
     const locale = getLocaleFromStore() || remote.app.getLocale();
     const path = getDefaultPathFromStore() || remote.app.getPath("documents");
-    const font = getFontFromStore() || "Ai-Deep";
+    const font = getFontFromStore() || "AiDeep";
     this.init_file_store({ files, openedFileIds, activeFileId });
     this.init_setting_store({ path, locale, font });
     this.$i18n.locale = locale;
     ipcRenderer.on("app-will-close", this.onAppWillClose);
     ipcRenderer.on("save-all", this.saveAllFiles);
+    ipcRenderer.on("save-and-update", this.saveAndUpdate);
+    ipcRenderer.on("open-external", this.openExternal);
     this.loading = false;
   },
   beforeDestroy() {
     ipcRenderer.removeListener("app-will-close", this.onAppWillClose);
     ipcRenderer.removeListener("save-all", this.saveAllFiles);
+    ipcRenderer.removeListener("save-and-update", this.saveAndUpdate);
+    ipcRenderer.removeListener("open-external", this.openExternal);
   },
   methods: {
     ...mapActions({
@@ -101,29 +106,31 @@ export default {
       } else {
         // app has unsaved files
         // ask the user if willing to save the changes or not
-        const clickedIndex = dialog.showMessageBoxSync(
-          remote.getCurrentWindow(),
-          {
-            type: "warning",
-            title: this.$t("HAS_UNSAVED_TITLE"),
-            message: this.$t("HAS_UNSAVED_MESSAGE"),
-            // 1.confirm 2.cancel
-            buttons: [this.$t("CANCEL"), this.$t("ABORT_CHANGES")],
-          }
-        );
-        if (clickedIndex === 1) {
-          // abort change and quit
-          saveFilesToStore(objToArr(this.files));
-          saveOpenedFilesToStore(
-            this.openedFileIds.filter((id) => this.files[id])
-          );
-          saveActiveFileToStore(
-            this.files[this.activeFileId] ? this.activeFileId : ""
-          );
-          return ipcRenderer.send("close-app");
-        }
-        // not quit
-        return;
+        return this.$confirm.show({
+          title: this.$t("HAS_UNSAVED_TITLE"),
+          message: this.$t("HAS_UNSAVED_MESSAGE"),
+          btns: [
+            {
+              label: this.$t("ABORT_CHANGES"),
+              style: "color: var(--main-color-danger)",
+              click: () => {
+                // abort change and quit
+                saveFilesToStore(objToArr(this.files));
+                saveOpenedFilesToStore(
+                  this.openedFileIds.filter((id) => this.files[id])
+                );
+                saveActiveFileToStore(
+                  this.files[this.activeFileId] ? this.activeFileId : ""
+                );
+                return ipcRenderer.send("close-app");
+              },
+            },
+            {
+              label: this.$t("CANCEL"),
+              click: () => null,
+            },
+          ],
+        });
       }
     },
     saveAllFiles() {
@@ -164,6 +171,22 @@ export default {
       this.set_files(filesCopy);
       this.set_unsaved_files(unsavedFilesCopy);
       this.savingAll = false;
+    },
+    saveAndUpdate() {
+      this.saveAllFiles();
+      ipcRenderer.send("update-now");
+    },
+    openExternal(event, message) {
+      let url = "";
+      switch (message) {
+        case "about":
+          url = "https://about.cokewise.com/cokee";
+          break;
+        default:
+          url = "https://cokewise.com";
+          break;
+      }
+      return shell.openExternal(url);
     },
   },
   watch: {

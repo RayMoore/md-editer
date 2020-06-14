@@ -13,10 +13,16 @@
 <script>
 import { mapState, mapMutations } from "vuex";
 import avatar from "@/components/avatar";
-const { remote } = window.require("electron");
+const { remote, ipcRenderer } = window.require("electron");
 export default {
   components: {
     avatar,
+  },
+  mounted() {
+    ipcRenderer.on("goto", this.goto);
+  },
+  beforeDestroy() {
+    ipcRenderer.removeListener("goto", this.goto);
   },
   computed: {
     ...mapState("user", ["token", "username", "avatar", "gender", "id"]),
@@ -30,6 +36,10 @@ export default {
     ...mapMutations({
       set_route: "router/set_route",
     }),
+    goto(event, message) {
+      console.log(message);
+      this.set_route(message);
+    },
   },
 };
 </script>

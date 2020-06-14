@@ -17,6 +17,11 @@ const locale = {
     WINDOW: "Window",
     DEVTOOL: "Development tool",
     RELOAD: "Reload",
+
+    HELP: "Help",
+    SETTINGS: "Settings",
+    ABOUT: "About",
+    CHECK_UPDATE: "Check update",
   },
   "zh-CN": {
     FILE: "文件",
@@ -36,6 +41,11 @@ const locale = {
     WINDOW: "窗口",
     DEVTOOL: "开发工具",
     RELOAD: "刷新",
+
+    HELP: "帮助",
+    SETTINGS: "设置",
+    ABOUT: "关于",
+    CHECK_UPDATE: "检查更新",
   },
 };
 
@@ -100,6 +110,32 @@ const buildMenu = (newLocale, browserWindow) => {
             if (browserWindow.isFullScreen())
               return browserWindow.setFullScreen(false);
             return browserWindow.setFullScreen(true);
+          },
+        },
+      ],
+    },
+    {
+      label: locale[lang]["HELP"],
+      submenu: [
+        {
+          label: locale[lang]["SETTINGS"],
+          click: () => {
+            browserWindow.webContents.send("goto", "setting-board");
+          },
+        },
+        {
+          label: locale[lang]["CHECK_UPDATE"],
+          click: () => {
+            browserWindow.webContents.send("check-for-update");
+          },
+        },
+        {
+          type: "separator",
+        },
+        {
+          label: locale[lang]["ABOUT"],
+          click: () => {
+            browserWindow.webContents.send("open-external", "about");
           },
         },
       ],

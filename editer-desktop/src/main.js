@@ -13,11 +13,13 @@ import i18n from "@/i18n";
 import vueResource from "vue-resource";
 
 import Alert from "@/plugins/alert";
+import Confirm from "@/plugins/confirm";
 Vue.use(Alert);
+Vue.use(Confirm);
 Vue.use(vueResource);
 
 Vue.config.productionTip = false;
-Vue.directive("title", function(el, binding) {
+Vue.directive("title", function (el, binding) {
   document.title = binding.value;
 });
 Vue.prototype.$eventbus = new Vue();
@@ -30,5 +32,5 @@ new Vue({
   store,
   router,
   components: { App },
-  template: "<App/>"
+  template: "<App/>",
 });

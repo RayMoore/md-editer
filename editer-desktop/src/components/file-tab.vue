@@ -12,14 +12,12 @@
 
 <script>
 import { mapMutations, mapState, mapActions } from "vuex";
-const { remote } = window.require("electron");
-const { dialog } = remote;
 export default {
   props: {
     file: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
   },
   computed: {
     ...mapState("file", ["files", "activeFileId", "unsavedFiles"]),
@@ -31,14 +29,14 @@ export default {
       const { file, activeFileId } = this;
       if (file.id === activeFileId) return "tab-pill active-pill";
       return "tab-pill active-btn";
-    }
+    },
   },
   methods: {
     ...mapMutations({
-      set_active_file_id: "file/set_active_file_id"
+      set_active_file_id: "file/set_active_file_id",
     }),
     ...mapActions({
-      remove_opened_file_id: "file/safe_remove_opened_file_id"
+      remove_opened_file_id: "file/safe_remove_opened_file_id",
     }),
     setActiveFile() {
       const { file, activeFileId } = this;
@@ -48,26 +46,29 @@ export default {
       const { file, unsavedFiles } = this;
       if (unsavedFiles[file.id]) {
         // current file is unsaved
-        const clickedIndex = dialog.showMessageBoxSync(
-          remote.getCurrentWindow(),
-          {
-            type: "warning",
-            title: this.$t("CLOSE_UNSAVED_TITLE"),
-            message: this.$t("CLOSE_UNSAVED_MESSAGE"),
-            // 1.confirm 2.cancel
-            buttons: [this.$t("CANCEL"), this.$t("CONFIRM")]
-          }
-        );
-        if (clickedIndex === 1) {
-          // confirm
-          this.$delete(unsavedFiles, file.id);
-          this.remove_opened_file_id(file.id);
-        }
+        return this.$confirm.show({
+          title: this.$t("CLOSE_UNSAVED_TITLE"),
+          message: this.$t("CLOSE_UNSAVED_MESSAGE"),
+          btns: [
+            {
+              label: this.$t("CONFIRM"),
+              style: "color: var(--main-color-danger)",
+              click: () => {
+                this.$delete(unsavedFiles, file.id);
+                this.remove_opened_file_id(file.id);
+              },
+            },
+            {
+              label: this.$t("CANCEL"),
+              click: () => null,
+            },
+          ],
+        });
       } else {
         this.remove_opened_file_id(file.id);
       }
-    }
-  }
+    },
+  },
 };
 </script>
 

@@ -38,6 +38,9 @@
         </transition>
       </div>
     </div>
+    <div class="title-app-title">
+      <span>{{ computedAppTitle }}</span>
+    </div>
     <div class="title-operation-wrapper">
       <div class="minimize" @click.stop="minimizeApp">
         <icon name="minimizeapp" class="title-op-icon" />
@@ -66,6 +69,7 @@ export default {
   },
   computed: {
     ...mapState("setting", ["locale"]),
+    ...mapState("file", ["activeFileId", "files"]),
     computedFullscreenIcon() {
       return this.isFullscreen ? "fullscreenreset" : "fullscreen";
     },
@@ -77,6 +81,12 @@ export default {
       return function (index) {
         return this.selectedMenu === index;
       };
+    },
+    computedAppTitle() {
+      const { files, activeFileId } = this;
+      const activeFile = files[activeFileId];
+      if (activeFile) return `${activeFile.title} - Cokee`;
+      return "Cokee";
     },
   },
   created() {
@@ -180,13 +190,33 @@ export default {
     color: white;
   }
 }
+.title-app-title {
+  height: 100%;
+  width: 20%;
+  left: 40%;
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  span {
+    color: whitesmoke;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
 
 .title-menu-wrapper {
   -webkit-app-region: no-drag;
+  max-width: 25%;
   height: 100%;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
+  flex-wrap: nowrap;
   align-items: center;
   width: auto;
 }

@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
   data() {
     return {
@@ -18,6 +19,7 @@ export default {
     };
   },
   computed: {
+    ...mapState("setting", ["font"]),
     computedAlertClass() {
       const { type } = this;
       let alertBase = "alert shadow";
@@ -25,23 +27,23 @@ export default {
       return `${alertBase} ${alertType}`;
     },
     computedFontStyle() {
-      const { fontFamily, fontColor, computedColor } = this;
+      const { font, fontColor, computedColor } = this;
       const color = fontColor || computedColor;
-      return `font-family: ${fontFamily}; color: ${color}`;
+      return `font-family: ${font}; color: ${color}`;
     },
     computedColor() {
       const { type } = this;
-      switch(type){
-        case 'warning':
-          return 'darkred';
+      switch (type) {
+        case "warning":
+          return "darkred";
         case "danger":
-          return 'whitesmoke';
-        case 'success':
           return "whitesmoke";
-        case 'info':
-          return 'dodgerblue';
+        case "success":
+          return "whitesmoke";
+        case "info":
+          return "dodgerblue";
         default:
-          return "gainsboro"
+          return "gainsboro";
       }
     },
     computedIconStyle() {
@@ -54,10 +56,6 @@ export default {
     type: {
       type: String,
       default: "warning",
-    },
-    fontFamily: {
-      type: String,
-      default: "Ai-deep",
     },
     fontColor: {
       type: String,

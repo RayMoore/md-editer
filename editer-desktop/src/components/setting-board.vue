@@ -67,7 +67,7 @@ const { dialog } = remote;
 
 export default {
   components: {
-    vueScroll
+    vueScroll,
   },
   data() {
     return {
@@ -75,7 +75,7 @@ export default {
       selectedLang: "",
       selectedFont: "",
       langSet: ["en-US", "zh-CN"],
-      fontSet: ["Ai-Deep", "ArimaKoshi-Regular", "ArimaKoshi-Medium"]
+      fontSet: ["AiDeep", "ArimaKoshiRegular", "JustFont"],
     };
   },
   created() {
@@ -88,7 +88,7 @@ export default {
       return this.selectedLang;
     },
     computedLocaleDisplayName() {
-      return function(locale) {
+      return function (locale) {
         switch (locale) {
           case "en-US":
             return this.$t("EN_US");
@@ -102,13 +102,13 @@ export default {
     computedFontStyle() {
       const { font } = this;
       return `font-family: ${font}`;
-    }
+    },
   },
   methods: {
     ...mapMutations({
       set_path: "setting/set_path",
       set_locale: "setting/set_locale",
-      set_font: "setting/set_font"
+      set_font: "setting/set_font",
     }),
     changeStoragePath() {
       const selectedPathArr = dialog.showOpenDialogSync(
@@ -116,10 +116,10 @@ export default {
         {
           title: this.$t("SELECT_STORAGE_TITLE"),
           defaultPath: this.path,
-          properties: ["openDirectory", "createDirectory", "promptToCreate"]
+          properties: ["openDirectory", "createDirectory", "promptToCreate"],
         }
       );
-      const selectedPath = selectedPathArr? selectedPathArr[0]:null;
+      const selectedPath = selectedPathArr ? selectedPathArr[0] : null;
       if (selectedPath) this.set_path(selectedPath);
     },
     changeLocale(e) {
@@ -129,7 +129,7 @@ export default {
     changeFont(e) {
       const selectedFont = e.target.value;
       if (this.font !== selectedFont) this.set_font(selectedFont);
-    }
+    },
   },
   watch: {
     locale(newVal, oldVal) {
@@ -137,8 +137,8 @@ export default {
     },
     font(newVal, oldVal) {
       this.selectedFont = newVal;
-    }
-  }
+    },
+  },
 };
 </script>
 

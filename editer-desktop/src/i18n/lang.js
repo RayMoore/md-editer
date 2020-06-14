@@ -55,6 +55,19 @@ export default {
     IMPORT_FILE_TITLE: "Import files",
     IMPORT_FILE_ERROR: "File already exists in workspace or error occured!",
     IMPORT_FILE_SUCCESS: "Successfully imported {number} files",
+
+    // UPDATE
+    UPDATE_AVAILABLE_TITLE: "New version",
+    UPDATE_AVAILABLE_MESSAGE: "Update available, download new update?",
+    DOWNLOAD: "Download",
+    UPDATE: "Update",
+    UPDATE_DOWNLOADED_TITLE: "Update downloaded",
+    UPDATE_DOWNLOADED_MESSAGE:
+      "Resources have been downloaded, quit and update?",
+    SAVE_AND_UPDATE: "Save and update",
+    UPDATE_NOT_AVAILABLE: "No update available",
+    UPDATE_ERROR: "Update occurs an error",
+    UPDATE_CHECKING: "Checking for updates",
   },
   zh_CN: {
     APP: "Cokee",
@@ -108,5 +121,17 @@ export default {
     IMPORT_FILE_TITLE: "导入文件",
     IMPORT_FILE_ERROR: "文件已经存在工作区或导入时放生错误",
     IMPORT_FILE_SUCCESS: "成功导入{number}个文件",
+
+    // UPDATE
+    UPDATE_AVAILABLE_TITLE: "有新版本",
+    UPDATE_AVAILABLE_MESSAGE: "检查到版本更新，是否需要执行下载？",
+    DOWNLOAD: "下载",
+    UPDATE: "开始更新",
+    UPDATE_DOWNLOADED_TITLE: "更新已下载",
+    UPDATE_DOWNLOADED_MESSAGE: "更新已经下载至本地，是否退出应用并更新？",
+    SAVE_AND_UPDATE: "保存并更新",
+    UPDATE_NOT_AVAILABLE: "暂无可用更新",
+    UPDATE_ERROR: "更新发生错误",
+    UPDATE_CHECKING: "正在检查可用更新",
   },
 };

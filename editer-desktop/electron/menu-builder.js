@@ -2,6 +2,9 @@ const { app } = require("electron");
 
 const locale = {
   "en-US": {
+    SERVICES: "Services",
+    QUIT: "Quit",
+
     FILE: "File",
     CREATE: "Create",
     SAVE: "Save",
@@ -18,9 +21,17 @@ const locale = {
 
     WINDOW: "Window",
     DEVTOOL: "Development tool",
-    RELOAD: "Reload"
+    RELOAD: "Reload",
+
+    HELP: "Help",
+    SETTINGS: "Settings",
+    ABOUT: "About",
+    CHECK_UPDATE: "Check update",
   },
   "zh-CN": {
+    SERVICES: "服务",
+    QUIT: "退出",
+
     FILE: "文件",
     CREATE: "新建",
     SAVE: "保存",
@@ -37,11 +48,16 @@ const locale = {
 
     WINDOW: "窗口",
     DEVTOOL: "开发工具",
-    RELOAD: "刷新"
-  }
+    RELOAD: "刷新",
+
+    HELP: "帮助",
+    SETTINGS: "设置",
+    ABOUT: "关于",
+    CHECK_UPDATE: "检查更新",
+  },
 };
 
-const buildMenu = newLocale => {
+const buildMenu = (newLocale) => {
   const lang = locale[newLocale] ? newLocale : "en-US";
   let template = [
     {
@@ -52,68 +68,94 @@ const buildMenu = newLocale => {
           accelerator: "CmdOrCtrl+N",
           click: (menuItem, browserWindow, event) => {
             browserWindow.webContents.send("create");
-          }
+          },
         },
         {
           label: locale[lang]["SAVE"],
           accelerator: "CmdOrCtrl+S",
           click: (menuItem, browserWindow, event) => {
             browserWindow.webContents.send("save");
-          }
+          },
         },
         {
           label: locale[lang]["SAVE_ALL"],
           accelerator: "CmdOrCtrl+Alt+S",
           click: (menuItem, browserWindow, event) => {
             browserWindow.webContents.send("save-all");
-          }
+          },
         },
         {
           label: locale[lang]["SEARCH"],
           accelerator: "CmdOrCtrl+F",
           click: (menuItem, browserWindow, event) => {
             browserWindow.webContents.send("search");
-          }
+          },
         },
         {
           label: locale[lang]["IMPORT"],
           accelerator: "CmdOrCtrl+I",
           click: (menuItem, browserWindow, event) => {
             browserWindow.webContents.send("import");
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       label: locale[lang]["VIEW"],
       submenu: [
         {
           label: locale[lang]["ZOOM_IN"],
-          role: "zoomin"
+          role: "zoomin",
         },
         {
           label: locale[lang]["ZOOM_OUT"],
-          role: "zoomout"
+          role: "zoomout",
         },
         {
           label: locale[lang]["RESET_ZOOM"],
-          role: "resetzoom"
+          role: "resetzoom",
         },
         {
-          type: "separator"
+          type: "separator",
         },
         {
           label: locale[lang]["MINIMIZE"],
           role: "minimize",
-          accelerator: "CmdOrCtrl+M"
+          accelerator: "CmdOrCtrl+M",
         },
         {
           label: locale[lang]["FULLSCREEN"],
           role: "togglefullscreen",
-          accelerator: "CmdOrCtrl+F12"
-        }
-      ]
-    }
+          accelerator: "CmdOrCtrl+F12",
+        },
+      ],
+    },
+    {
+      label: locale[lang]["HELP"],
+      submenu: [
+        {
+          label: locale[lang]["SETTINGS"],
+          click: (menuItem, browserWindow, event) => {
+            browserWindow.webContents.send("goto", "setting-board");
+          },
+        },
+        {
+          label: locale[lang]["CHECK_UPDATE"],
+          click: (menuItem, browserWindow, event) => {
+            browserWindow.webContents.send("check-for-update");
+          },
+        },
+        {
+          type: "separator",
+        },
+        {
+          label: locale[lang]["ABOUT"],
+          click: (menuItem, browserWindow, event) => {
+            browserWindow.webContents.send("open-external", "about");
+          },
+        },
+      ],
+    },
   ];
   if (process.platform === "darwin") {
     const name = app.getName();
@@ -121,25 +163,21 @@ const buildMenu = newLocale => {
       label: name,
       submenu: [
         {
-          role: "about"
+          label: locale[lang]["SERVICES"],
+          role: "services",
         },
         {
-          type: "separator"
+          type: "separator",
         },
         {
-          role: "services"
-        },
-        {
-          type: "separator"
-        },
-        {
+          label: locale[lang]["QUIT"],
           role: "quit",
-          accelerator: "CmdOrCtrl+Q"
+          accelerator: "CmdOrCtrl+Q",
         },
         {
-          role: "close"
-        }
-      ]
+          role: "close",
+        },
+      ],
     });
   }
   return template;

@@ -1,11 +1,13 @@
 import alert from "@/components/alert.vue";
+import store from "@/store";
+import i18n from "@/i18n";
 
 const Alert = {
-  install: function(Vue) {
+  install: function (Vue) {
     const AlertInstance = Vue.extend(alert);
     const initInstance = () => {
       // init vue instance
-      currentAlert = new AlertInstance();
+      currentAlert = new AlertInstance({ store, i18n });
       let alertEl = currentAlert.$mount().$el;
       document.body.appendChild(alertEl);
     };
@@ -16,9 +18,9 @@ const Alert = {
         if (!currentAlert) initInstance();
         Object.assign(currentAlert, options);
         return currentAlert.show();
-      }
+      },
     };
-  }
+  },
 };
 
 export default Alert;

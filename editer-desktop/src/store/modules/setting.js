@@ -1,7 +1,7 @@
 const state = {
   path: "",
   locale: "en-US",
-  font: "Ai-Deep"
+  font: "AiDeep",
 };
 
 const getters = {};
@@ -11,7 +11,7 @@ const actions = {
     commit("set_locale", locale);
     commit("set_path", path);
     commit("set_font", font);
-  }
+  },
 };
 const mutations = {
   set_locale(state, payload) {
@@ -22,7 +22,7 @@ const mutations = {
   },
   set_font(state, payload) {
     state.font = payload;
-  }
+  },
 };
 
 export default {
@@ -30,5 +30,5 @@ export default {
   state,
   getters,
   actions,
-  mutations
+  mutations,
 };
