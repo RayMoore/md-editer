@@ -11,14 +11,18 @@ export default {
     ipcRenderer.on("update-available", this.updateAvailable);
     ipcRenderer.on("update-error", this.updateError);
     ipcRenderer.on("update-downloaded", this.updateDownloaded);
+    ipcRenderer.on("check-for-update", this.checkForUpdate);
     ipcRenderer.on("checking-for-update", this.checkingForUpdate);
+    // ipcRenderer.on("test-message", this.testMessage);
   },
   beforeDestroy() {
     ipcRenderer.removeListener("update-not-available", this.updateNotAvailable);
     ipcRenderer.removeListener("update-available", this.updateAvailable);
     ipcRenderer.removeListener("update-error", this.updateError);
     ipcRenderer.removeListener("update-downloaded", this.updateDownloaded);
+    ipcRenderer.removeListener("check-for-update", this.checkForUpdate);
     ipcRenderer.removeListener("checking-for-update", this.checkingForUpdate);
+    // ipcRenderer.removeListener("test-message", this.testMessage);
   },
   computed: {
     ...mapState("file", ["unsavedFiles"]),
@@ -30,6 +34,9 @@ export default {
         message: this.$t("UPDATE_NOT_AVAILABLE"),
         interval: 3000,
       });
+    },
+    checkForUpdate() {
+      return ipcRenderer.send("check-for-update");
     },
     updateError() {
       return this.alert.show({
@@ -102,6 +109,15 @@ export default {
         btns,
       });
     },
+    // testMessage(event, args) {
+    //   let m = "";
+    //   let message = Object.keys(args).map((key) => {
+    //     m += `${key}: ${args[key]}`;
+    //   });
+    //   this.$confirm.show({
+    //     message,
+    //   });
+    // },
   },
 };
 </script>

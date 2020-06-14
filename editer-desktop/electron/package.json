@@ -17,7 +17,7 @@
     "publish": [
       {
         "provider": "generic",
-        "url": "https://cokewise.com/download/cokee"
+        "url": "https://download.cokewise.com/cokee"
       }
     ],
     "directories": {

@@ -8,6 +8,11 @@ const updateURL = "https://download.cokewise.com/cokee";
 const updateCacheDirName = "update-cache";
 
 let mainWindow = null;
+let updatePendingPath = path.join(
+  autoUpdater.app.baseCachePath,
+  updateCacheDirName,
+  "pending"
+);
 let windowOption = {
   width: 1440,
   height: 768,
@@ -40,11 +45,6 @@ const emptyDir = (filepath) => {
 };
 
 const handleUpdate = (mainWindow) => {
-  const updatePendingPath = path.join(
-    autoUpdater.app.baseCachePath,
-    updateCacheDirName,
-    "pending"
-  );
   emptyDir(updatePendingPath);
   autoUpdater.autoDownload = false;
   autoUpdater.setFeedURL(updateURL);
@@ -77,28 +77,29 @@ const createWindow = () => {
   mainWindow.loadURL(urlLocation);
   // default menu
   const locale = app.getLocale();
-  const menu = Menu.buildFromTemplate(menuBuilder(locale, false));
+  const menu = Menu.buildFromTemplate(menuBuilder(locale, true));
   Menu.setApplicationMenu(menu);
-  handleUpdate(mainWindow);
   ipcMain.on("locale-changed", (event, args) => {
     // menu rebuild on locale change
-    const newMenu = Menu.buildFromTemplate(menuBuilder(args, false));
+    const newMenu = Menu.buildFromTemplate(menuBuilder(args, true));
     Menu.setApplicationMenu(newMenu);
   });
   ipcMain.on("close-app", () => {
     ipcMain.removeAllListeners();
     mainWindow.destroy();
   });
-  ipcMain.on("check-for-update", () => {
+  ipcMain.on("check-for-update", async () => {
     autoUpdater.checkForUpdates();
   });
   ipcMain.on("download-update", () => {
+    emptyDir(updatePendingPath);
     autoUpdater.downloadUpdate();
   });
   ipcMain.on("update-now", () => {
     autoUpdater.quitAndInstall();
     mainWindow.destroy();
   });
+  handleUpdate(mainWindow);
   mainWindow.on("ready-to-show", function () {
     mainWindow.show();
   });

@@ -1,6 +1,6 @@
 <template>
   <transition name="fade">
-    <div :class="computedAlertClass" v-if="visible">
+    <div :class="computedAlertClass" :style="computedAlertTop" v-if="visible">
       <span class="display-only" :style="computedFontStyle">{{ message }}</span>
       <a @click="resetTimer">
         <icon name="closebold" :style="computedIconStyle" class="icon" />
@@ -11,6 +11,7 @@
 
 <script>
 import { mapState } from "vuex";
+const { remote } = window.require("electron");
 export default {
   data() {
     return {
@@ -22,9 +23,15 @@ export default {
     ...mapState("setting", ["font"]),
     computedAlertClass() {
       const { type } = this;
-      let alertBase = "alert shadow";
+      let alertBase = "alert";
       let alertType = type;
       return `${alertBase} ${alertType}`;
+    },
+    computedAlertTop() {
+      if (remote.process.platform === "win32") {
+        return "top: 35px";
+      }
+      return "top: 5px";
     },
     computedFontStyle() {
       const { font, fontColor, computedColor } = this;
@@ -41,7 +48,7 @@ export default {
         case "success":
           return "whitesmoke";
         case "info":
-          return "dodgerblue";
+          return "darkslateblue";
         default:
           return "gainsboro";
       }
@@ -99,7 +106,6 @@ export default {
 @import "../../static/style.scss";
 .alert {
   position: absolute;
-  top: 5px;
   left: 50%;
   z-index: 10050 !important;
   transform: translateX(-50%);
