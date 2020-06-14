@@ -64,7 +64,7 @@ export default {
     return {
       win: null,
       isFullscreen: false,
-      selectedMenu: -1,
+      selectedMenu: -1
     };
   },
   computed: {
@@ -78,16 +78,16 @@ export default {
       return buildMenu(locale, win);
     },
     computedSubMenuVisible() {
-      return function (index) {
+      return function(index) {
         return this.selectedMenu === index;
       };
     },
     computedAppTitle() {
       const { files, activeFileId } = this;
       const activeFile = files[activeFileId];
-      if (activeFile) return `${activeFile.title} - Cokee`;
-      return "Cokee";
-    },
+      if (activeFile) return `${activeFile.title} - ${this.$t("APP")}`;
+      return this.$t("APP");
+    }
   },
   created() {
     this.win = remote.getCurrentWindow();
@@ -121,8 +121,8 @@ export default {
     menuOnClick(click) {
       this.selectedMenu = -1;
       return click();
-    },
-  },
+    }
+  }
 };
 </script>
 

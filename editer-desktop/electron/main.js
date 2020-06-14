@@ -19,16 +19,15 @@ let windowOption = {
   minWidth: 1024,
   minHeight: 600,
   title,
-  frame: false,
   center: true,
   show: false,
   webPreferences: {
     nodeIntegration: true,
-    enableRemoteModule: true,
-  },
+    enableRemoteModule: true
+  }
 };
 
-const emptyDir = (filepath) => {
+const emptyDir = filepath => {
   let files = [];
   if (fs.existsSync(filepath)) {
     files = fs.readdirSync(filepath);
@@ -44,7 +43,7 @@ const emptyDir = (filepath) => {
   }
 };
 
-const handleUpdate = (mainWindow) => {
+const handleUpdate = mainWindow => {
   emptyDir(updatePendingPath);
   autoUpdater.autoDownload = false;
   autoUpdater.setFeedURL(updateURL);
@@ -60,7 +59,7 @@ const handleUpdate = (mainWindow) => {
   autoUpdater.on("update-not-available", () => {
     mainWindow.webContents.send("update-not-available");
   });
-  autoUpdater.on("download-progress", (progressObj) => {
+  autoUpdater.on("download-progress", progressObj => {
     mainWindow.webContents.send("download-progress", progressObj);
   });
   autoUpdater.on("update-downloaded", () => {
@@ -69,8 +68,8 @@ const handleUpdate = (mainWindow) => {
 };
 
 const createWindow = () => {
-  if (process.platform === "darwin") {
-    windowOptions["titleBarStyle"] = "hidden";
+  if (process.platform === "win32") {
+    windowOptions["frame"] = false;
   }
   mainWindow = new BrowserWindow(windowOption);
   const urlLocation = `file://${__dirname}/index.html`;
@@ -100,10 +99,10 @@ const createWindow = () => {
     mainWindow.destroy();
   });
   handleUpdate(mainWindow);
-  mainWindow.on("ready-to-show", function () {
+  mainWindow.on("ready-to-show", function() {
     mainWindow.show();
   });
-  mainWindow.on("close", function (event) {
+  mainWindow.on("close", function(event) {
     event.preventDefault();
     mainWindow.webContents.send("app-will-close");
   });

@@ -1,7 +1,7 @@
 <template>
   <div
     id="app"
-    v-title="computedTitle"
+    v-title="computedAppTitle"
     @click.stop="resetComponent"
     :style="computedFontStyle"
   >
@@ -25,7 +25,7 @@ import {
   saveOpenedFilesToStore,
   getOpenedFilesFromStore,
   saveActiveFileToStore,
-  getActiveFileFromStore,
+  getActiveFileFromStore
 } from "@/common/store";
 import { objToArr } from "@/common/flatten";
 import updater from "@/components/updater";
@@ -38,7 +38,7 @@ export default {
   data() {
     return {
       savingAll: false,
-      loading: false,
+      loading: false
     };
   },
   computed: {
@@ -47,15 +47,18 @@ export default {
       "files",
       "unsavedFiles",
       "openedFileIds",
-      "activeFileId",
+      "activeFileId"
     ]),
-    computedTitle() {
+    computedAppTitle() {
+      const { files, activeFileId } = this;
+      const activeFile = files[activeFileId];
+      if (activeFile) return `${activeFile.title} - ${this.$t("APP")}`;
       return this.$t("APP");
     },
     computedFontStyle() {
       const { font } = this;
       return `font-family: ${font}`;
-    },
+    }
   },
   mounted() {
     this.loading = true;
@@ -83,11 +86,11 @@ export default {
   methods: {
     ...mapActions({
       init_file_store: "file/init_file_store",
-      init_setting_store: "setting/init_setting_store",
+      init_setting_store: "setting/init_setting_store"
     }),
     ...mapMutations({
       set_files: "file/set_files",
-      set_unsaved_files: "file/set_unsaved_files",
+      set_unsaved_files: "file/set_unsaved_files"
     }),
     resetComponent() {
       this.$eventbus.$emit("reset-component");
@@ -96,9 +99,7 @@ export default {
       const { unsavedFiles } = this;
       if (!unsavedFiles || Object.keys(unsavedFiles).length === 0) {
         saveFilesToStore(objToArr(this.files));
-        saveOpenedFilesToStore(
-          this.openedFileIds.filter((id) => this.files[id])
-        );
+        saveOpenedFilesToStore(this.openedFileIds.filter(id => this.files[id]));
         saveActiveFileToStore(
           this.files[this.activeFileId] ? this.activeFileId : ""
         );
@@ -117,19 +118,19 @@ export default {
                 // abort change and quit
                 saveFilesToStore(objToArr(this.files));
                 saveOpenedFilesToStore(
-                  this.openedFileIds.filter((id) => this.files[id])
+                  this.openedFileIds.filter(id => this.files[id])
                 );
                 saveActiveFileToStore(
                   this.files[this.activeFileId] ? this.activeFileId : ""
                 );
                 return ipcRenderer.send("close-app");
-              },
+              }
             },
             {
               label: this.$t("CANCEL"),
-              click: () => null,
-            },
-          ],
+              click: () => null
+            }
+          ]
         });
       }
     },
@@ -153,7 +154,7 @@ export default {
           const modifiedFile = {
             ...unsavedOriginalFile,
             content,
-            updatedAt: new Date().getTime,
+            updatedAt: new Date().getTime
           };
           filesCopy[id] = modifiedFile;
           delete unsavedFilesCopy[id];
@@ -161,9 +162,9 @@ export default {
           this.$alert.show({
             type: "warning",
             message: this.$t("SAVE_FILE_ERROR", {
-              name: unsavedOriginalFile.title,
+              name: unsavedOriginalFile.title
             }),
-            interval: 3000,
+            interval: 3000
           });
           continue;
         }
@@ -187,7 +188,7 @@ export default {
           break;
       }
       return shell.openExternal(url);
-    },
+    }
   },
   watch: {
     locale(newVal, oldVal) {
@@ -203,8 +204,8 @@ export default {
     },
     font(newVal, oldVal) {
       saveFontToStore(newVal);
-    },
-  },
+    }
+  }
 };
 </script>
 

@@ -7,17 +7,17 @@ let windowOptions = {
   minWidth: 1024,
   minHeight: 600,
   title,
-  frame: false,
+  show: false,
   center: true,
   webPreferences: {
     nodeIntegration: true,
-    enableRemoteModule: true,
-  },
+    enableRemoteModule: true
+  }
 };
 let mainWindow = null;
 const createWindow = () => {
-  if (process.platform === "darwin") {
-    windowOptions["titleBarStyle"] = "hidden";
+  if (process.platform === "win32") {
+    windowOptions["frame"] = false;
   }
   mainWindow = new BrowserWindow(windowOptions);
   const urlLocation = "http://localhost:8080";
@@ -35,10 +35,10 @@ const createWindow = () => {
     ipcMain.removeAllListeners();
     mainWindow.destroy();
   });
-  mainWindow.on("ready-to-show", function () {
+  mainWindow.on("ready-to-show", function() {
     mainWindow.show();
   });
-  mainWindow.on("close", function (event) {
+  mainWindow.on("close", function(event) {
     event.preventDefault();
     mainWindow.webContents.send("app-will-close");
   });

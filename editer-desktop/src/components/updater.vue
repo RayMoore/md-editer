@@ -13,7 +13,6 @@ export default {
     ipcRenderer.on("update-downloaded", this.updateDownloaded);
     ipcRenderer.on("check-for-update", this.checkForUpdate);
     ipcRenderer.on("checking-for-update", this.checkingForUpdate);
-    // ipcRenderer.on("test-message", this.testMessage);
   },
   beforeDestroy() {
     ipcRenderer.removeListener("update-not-available", this.updateNotAvailable);
@@ -22,17 +21,16 @@ export default {
     ipcRenderer.removeListener("update-downloaded", this.updateDownloaded);
     ipcRenderer.removeListener("check-for-update", this.checkForUpdate);
     ipcRenderer.removeListener("checking-for-update", this.checkingForUpdate);
-    // ipcRenderer.removeListener("test-message", this.testMessage);
   },
   computed: {
-    ...mapState("file", ["unsavedFiles"]),
+    ...mapState("file", ["unsavedFiles"])
   },
   methods: {
     updateNotAvailable() {
       return this.$alert.show({
         type: "info",
         message: this.$t("UPDATE_NOT_AVAILABLE"),
-        interval: 3000,
+        interval: 3000
       });
     },
     checkForUpdate() {
@@ -42,14 +40,14 @@ export default {
       return this.alert.show({
         type: "danger",
         message: this.$t("UPDATE_ERROR"),
-        interval: 3000,
+        interval: 3000
       });
     },
     checkingForUpdate() {
       return this.$alert.show({
         type: "info",
         message: this.$t("UPDATE_CHECKING"),
-        interval: 3000,
+        interval: 3000
       });
     },
     updateAvailable() {
@@ -62,14 +60,14 @@ export default {
             style: "color: var(--main-color-blue)",
             click: () => {
               return ipcRenderer.send("download-update");
-            },
+            }
           },
           {
             label: this.$t("CANCEL"),
             style: "color: var(--main-color-danger)",
-            click: () => null,
-          },
-        ],
+            click: () => null
+          }
+        ]
       });
     },
     updateDownloaded() {
@@ -78,8 +76,8 @@ export default {
         {
           label: this.$t("CANCEL"),
           style: "color: var(--main-color-danger)",
-          click: () => null,
-        },
+          click: () => null
+        }
       ];
       if (Object.keys(unsavedFiles).length > 0) {
         // has unsaved files
@@ -92,7 +90,7 @@ export default {
             return remote
               .getCurrentWindow()
               .webContents.send("save-and-update");
-          },
+          }
         });
       } else {
         btns.unshift({
@@ -100,15 +98,15 @@ export default {
           style: "color: var(--main-color-blue)",
           click: () => {
             return ipcRenderer.send("update-now");
-          },
+          }
         });
       }
       return this.$confirm.show({
         title: this.$t("UPDATE_DOWNLOADED_TITLE"),
         message: this.$t("UPDATE_DOWNLOADED_MESSAGE"),
-        btns,
+        btns
       });
-    },
+    }
     // testMessage(event, args) {
     //   let m = "";
     //   let message = Object.keys(args).map((key) => {
@@ -118,7 +116,7 @@ export default {
     //     message,
     //   });
     // },
-  },
+  }
 };
 </script>
 

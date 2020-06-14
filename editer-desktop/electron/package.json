@@ -6,7 +6,8 @@
   "version": "1.0.0",
   "main": "main.js",
   "scripts": {
-    "win": "rm -rf dist && electron-builder --win"
+    "win": "rm -rf dist && electron-builder --win",
+    "mac": "rm -rf dist && electron-builder --mac"
   },
   "description": "desktop markdown editor application",
   "build": {
@@ -14,12 +15,10 @@
     "appId": "com.cokewise.cokee",
     "artifactName": "${productName}-${version}-${arch}.${ext}",
     "copyright": "Copyright © 2020 ${author}",
-    "publish": [
-      {
-        "provider": "generic",
-        "url": "https://download.cokewise.com/cokee"
-      }
-    ],
+    "publish": [{
+      "provider": "generic",
+      "url": "https://download.cokewise.com/cokee"
+    }],
     "directories": {
       "buildResources": "assets"
     },
@@ -45,8 +44,7 @@
       "background": "assets/appdmgwitharrow.png",
       "icon": "assets/icon.icns",
       "iconSize": 80,
-      "contents": [
-        {
+      "contents": [{
           "x": 400,
           "y": 180,
           "type": "link",
